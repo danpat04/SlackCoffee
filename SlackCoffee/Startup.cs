@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -11,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SlackCoffee.Models;
+using SlackCoffee.Utils;
 
 namespace SlackCoffee
 {
@@ -29,6 +31,10 @@ namespace SlackCoffee
             services.AddControllers();
 
             services.AddDbContext<CoffeeContext>();
+
+            // configure slack authentication 
+            // services.AddAuthentication("SlackAuthentication")
+            //     .AddScheme<AuthenticationSchemeOptions, SlackAuthenticationHandler>("SlackAuthentication", null);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -42,6 +48,8 @@ namespace SlackCoffee
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
