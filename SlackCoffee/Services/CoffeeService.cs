@@ -252,14 +252,7 @@ namespace SlackCoffee.Services
 
         public async Task<User> FindUserAsync(string userId)
         {
-            try
-            {
-                return await _context.Users.FindAsync(userId);
-            }
-            catch (Exception e)
-            {
-                throw;
-            }
+            return await _context.Users.FindAsync(userId);
         }
 
         public async Task<User> CreateUserAsync(string userId, bool isManager)
@@ -271,14 +264,7 @@ namespace SlackCoffee.Services
                 throw new BadRequestException("이미 등록된 사용자입니다.");
 
             user = new User { Id = userId, IsManager = isManager, Deposit = 0 };
-            try
-            {
-                await _context.Users.AddAsync(user);
-            }
-            catch (Exception e)
-            {
-                throw;
-            }
+            await _context.Users.AddAsync(user);
 
             return user;
         }
