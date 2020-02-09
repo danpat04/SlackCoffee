@@ -13,7 +13,20 @@ namespace SlackCoffee.Services
         private static readonly TimeSpan OrderTolerance = new TimeSpan(6, 0, 0);
 
         private readonly CoffeeContext _context;
-        private IDbContextTransaction _transaction = null;
+
+        private IDbContextTransaction __transaction = null;
+        private IDbContextTransaction _transaction
+        {
+            get { return __transaction; }
+            set
+            {
+                if (value == null)
+                {
+                    value = null;
+                }
+                __transaction = value;
+            }
+        }
 
         public CoffeeService(CoffeeContext context)
         {
@@ -239,7 +252,14 @@ namespace SlackCoffee.Services
 
         public async Task<User> FindUserAsync(string userId)
         {
-            return await _context.Users.FindAsync(userId);
+            try
+            {
+                return await _context.Users.FindAsync(userId);
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
         }
 
         public async Task<User> CreateUserAsync(string userId, bool isManager)
@@ -251,7 +271,14 @@ namespace SlackCoffee.Services
                 throw new BadRequestException("이미 등록된 사용자입니다.");
 
             user = new User { Id = userId, IsManager = isManager, Deposit = 0 };
-            await _context.Users.AddAsync(user);
+            try
+            {
+                await _context.Users.AddAsync(user);
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
 
             return user;
         }
@@ -270,17 +297,39 @@ namespace SlackCoffee.Services
             return user;
         }
 
-        public async Task<Menu> AddMenu(string id, string description, int price, int order)
+        public async Task AddMenuAsync(Menu menu)
         {
             await BeginTransactionAsync();
 
-            var menu = await _context.Menus.FindAsync(id);
-            if (menu == null)
+            var prevMenu = await _context.Menus.FindAsync(menu.Id);
+            if (prevMenu != null)
                 throw new BadRequestException("이미 존재하는 메뉴입니다.");
 
-            menu = new Menu { Id = id, Description = description, Price = price, Order = order, Enabled = true };
             _context.Menus.Add(menu);
-            return menu;
+        }
+
+        public async Task ChangeMenuAsync(Menu menu)
+        {
+            await BeginTransactionAsync();
+
+            var prevMenu = await _context.Menus.FindAsync(menu.Id);
+            if (prevMenu == null)
+                throw new BadRequestException("없는 메뉴입니다.");
+
+            prevMenu.Update(menu);
+            _context.Menus.Update(prevMenu);
+        }
+
+        public async Task EnableMenuAsync(string menuId, bool enabled)
+        {
+            await BeginTransactionAsync();
+
+            var menu = await _context.Menus.FindAsync(menuId);
+            if (menu == null)
+                throw new BadRequestException("없는 메뉴입니다.");
+
+            menu.Enabled = enabled;
+            _context.Menus.Update(menu);
         }
     }
 }

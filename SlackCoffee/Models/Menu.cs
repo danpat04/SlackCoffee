@@ -18,5 +18,12 @@ namespace SlackCoffee.Models
         public int Order { get; set; }
 
         public bool Enabled { get; set; }
+
+        public void Update(Menu update)
+        {
+            Description = update.Description;
+            Price = update.Price;
+            Order = update.Order;
+        }
     }
 }
