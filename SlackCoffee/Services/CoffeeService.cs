@@ -331,5 +331,10 @@ namespace SlackCoffee.Services
             menu.Enabled = enabled;
             _context.Menus.Update(menu);
         }
+
+        public async Task<Menu[]> GetMenusAsync()
+        {
+            return await _context.Menus.OrderBy(m => m.Order).ToArrayAsync();
+        }
     }
 }

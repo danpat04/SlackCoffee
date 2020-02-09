@@ -12,21 +12,14 @@ namespace SlackCoffee.Utils
         public CommandHandlerException(string message, Exception inner) : base(message, inner) { }
     }
 
-    public abstract class BaseCommand
+    public abstract class Command : IComparable
     {
         public readonly string Id;
 
-        public BaseCommand(string id)
+        public Command(string id)
         {
             Id = id;
         }
-    }
-
-    public abstract class Command<TUser> : BaseCommand, IComparable
-    {
-        public Command(string id) : base(id) { }
-
-        public abstract bool Authorized(TUser user);
 
         public abstract string MakeDescription();
 
@@ -35,20 +28,20 @@ namespace SlackCoffee.Utils
 
     public class CommandAttribute : Attribute
     {
-        public readonly BaseCommand Command;
+        public readonly Command Command;
 
-        public CommandAttribute(BaseCommand command)
+        public CommandAttribute(Command command)
         {
             Command = command;
         }
     }
 
-    public class CommandHandlers<T, TUser>
+    public class CommandHandlers<T, TCommand> where TCommand : Command
     {
-        public delegate Task<IActionResult> CommandHandler(string text);
+        public delegate Task<SlackResponse> CommandHandler(string text);
 
-        private readonly Dictionary<string, KeyValuePair<Command<TUser>, System.Reflection.MethodInfo>> handlers =
-            new Dictionary<string, KeyValuePair<Command<TUser>, System.Reflection.MethodInfo>>();
+        private readonly Dictionary<string, KeyValuePair<TCommand, MethodInfo>> handlers =
+            new Dictionary<string, KeyValuePair<TCommand, MethodInfo>>();
 
         public CommandHandlers()
         {
@@ -58,50 +51,17 @@ namespace SlackCoffee.Utils
             foreach (var methodInfo in type.GetMethods())
             {
                 if (methodInfo.GetCustomAttributes(attrType, true).FirstOrDefault() is CommandAttribute attr &&
-                    attr.Command is Command<TUser> c)
+                    attr.Command is TCommand c)
                 {
-                    var handler = new KeyValuePair<Command<TUser>, System.Reflection.MethodInfo>(c, methodInfo);
+                    var handler = new KeyValuePair<TCommand, MethodInfo>(c, methodInfo);
                     handlers.Add(c.Id, handler);
                 }
             }
         }
 
-        public CommandHandler GetHandler(T target, TUser user, string commandId)
+        public bool TryGetHandler(string commandId, out KeyValuePair<TCommand, MethodInfo> handlerInfo)
         {
-            if (!handlers.TryGetValue(commandId, out var value))
-                return null;
-
-            var command = value.Key;
-            var methodInfo = value.Value;
-
-            if (!command.Authorized(user))
-                return null;
-
-            return async (text) =>
-            {
-                object result;
-                Task<IActionResult> task;
-                try
-                {
-                    result = methodInfo.Invoke(target, new object[] { user, text });
-                }
-                catch (Exception e)
-                {
-                    if (e is TargetParameterCountException || e is ArgumentException)
-                        throw new CommandHandlerException("Error occurred while handling command", e);
-                    throw;
-                }
-
-                try
-                {
-                    task = (Task<IActionResult>)result;
-                }
-                catch (InvalidCastException e)
-                {
-                    throw new CommandHandlerException("Error occurred while handling command", e);
-                }
-                return await task;
-            };
+            return handlers.TryGetValue(commandId, out handlerInfo);
         }
 
         public IEnumerable<KeyValuePair<string, string>> GetDescriptions()
