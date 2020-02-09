@@ -33,8 +33,12 @@ namespace SlackCoffee
             services.AddDbContext<CoffeeContext>();
 
             // configure slack authentication 
-            // services.AddAuthentication("SlackAuthentication")
-            //     .AddScheme<AuthenticationSchemeOptions, SlackAuthenticationHandler>("SlackAuthentication", null);
+            services.AddAuthentication("SlackAuthentication")
+                .AddScheme<AuthenticationSchemeOptions, SlackAuthenticationHandler>("SlackAuthentication", null);
+
+            services.AddAuthorization(options =>
+                options.AddPolicy("Slack",
+                policy => policy.RequireClaim("SlackSignature")));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

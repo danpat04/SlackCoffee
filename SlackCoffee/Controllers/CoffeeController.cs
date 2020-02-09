@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -52,7 +53,8 @@ namespace SlackCoffee.Controllers
             : base(new CoffeeCommand(command, description, false)) { }
     }
 
-    [Route("[controller]/[action]")]
+    [Route("coffee/[action]")]
+    [Authorize(Policy = "Slack")]
     [ApiController]
     public class CoffeeController : ControllerBase
     {
@@ -78,20 +80,27 @@ namespace SlackCoffee.Controllers
             return Ok(SimpleResponse.Ephemeral(message));
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Test()
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> Test2()
         {
             using var reader = new StreamReader(Request.Body);
             return SlackOk(await reader.ReadToEndAsync());
         }
 
-        [HttpGet]
+        [HttpPost]
+        public async Task<IActionResult> Test()
+        {
+            return SlackOk("OK");
+        }
+
+        [HttpPost]
         public async Task<IActionResult> Do()
         {
             using var coffee = new CoffeeService(_coffeeContext);
 
-            string id = Request.Form["userId"];
-            string name = Request.Form["userName"];
+            string id = Request.Form["user_id"];
+            string name = Request.Form["user_name"];
 
             var user = await coffee.FindUserAsync(id);
             if (user == null)
@@ -108,14 +117,18 @@ namespace SlackCoffee.Controllers
             if (handler == null)
                 return SlackBadRequest("없는 명령어 입니다.");
 
+            IActionResult result;
             try
             {
-                return await handler(option);
+                result = await handler(option);
             }
             catch (BadRequestException e)
             {
                 return SlackBadRequest(e.Message);
             }
+
+            await _coffeeContext.SaveChangesAsync();
+            return result;
         }
 
         [CoffeeCommand("메뉴추가", "[이름], [설명], [가격(원)], [순서(숫자)]", true)]
