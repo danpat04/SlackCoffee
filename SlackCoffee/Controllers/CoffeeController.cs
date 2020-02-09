@@ -90,6 +90,7 @@ namespace SlackCoffee.Controllers
             if (user == null)
             {
                 user = await coffee.CreateUserAsync(request.UserId, false);
+                await coffee.SaveAsync();
             }
 
             var splitted = request.Text.ToString().Trim().Split(' ', 2);
@@ -111,7 +112,7 @@ namespace SlackCoffee.Controllers
                 return SlackBadRequest(e.Message);
             }
 
-            await _coffeeContext.SaveChangesAsync();
+            await coffee.SaveAsync();
             return result;
         }
 

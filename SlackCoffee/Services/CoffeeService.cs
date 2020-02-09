@@ -35,7 +35,11 @@ namespace SlackCoffee.Services
         public async Task SaveAsync()
         {
             if (_transaction != null)
+            {
                 await _transaction.CommitAsync();
+                await _context.SaveChangesAsync();
+                _transaction = null;
+            }
         }
 
         private async Task BeginTransactionAsync()
