@@ -55,21 +55,16 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             return inChannel ? SimpleResponse.InChannel(text) : SimpleResponse.Ephemeral(text);
         }
 
-        private SlackResponse BadRequest(string text)
-        {
-            return Ok(text);
-        }
-
         public async Task<SlackResponse> HandleCommandAsync(CoffeeService coffee, User user, string commandId, string options, ILogger logger = null)
         {
             if (!handlers.TryGetHandler(commandId, out var handlerInfo))
-                return BadRequest("없는 명령어 입니다.");
+                throw new BadRequestException("없는 명령어입니다.");
 
             var command = handlerInfo.Key;
             var methodInfo = handlerInfo.Value;
 
             if (command.ForManager && !user.IsManager)
-                return BadRequest("운영자 전용 명령어 입니다.");
+                throw new BadRequestException("운영자 전용 명령어입니다.");
 
             return await (Task<SlackResponse>)methodInfo.Invoke(this, new object[] { coffee, user, options });
         }

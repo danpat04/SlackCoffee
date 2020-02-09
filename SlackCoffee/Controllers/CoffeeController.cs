@@ -44,14 +44,18 @@ namespace SlackCoffee.Controllers
             var command = splitted[0];
             var option = splitted.Length > 1 ? splitted[1] : "";
 
+            SlackResponse result;
             try
             {
-                return Ok(await commands.HandleCommandAsync(coffee, user, command, option, _logger));
+                result = await commands.HandleCommandAsync(coffee, user, command, option, _logger);
             }
             catch (BadRequestException e)
             {
                 return Ok(e.Message);
             }
+
+            await coffee.SaveAsync();
+            return Ok(result);
         }
     }
 }

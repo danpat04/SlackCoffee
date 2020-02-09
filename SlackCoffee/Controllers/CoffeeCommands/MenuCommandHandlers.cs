@@ -35,10 +35,9 @@ namespace SlackCoffee.Controllers.CoffeeCommands
         {
             var menu = UnpackMenu(text);
             if (menu == null)
-                return BadRequest("잘못된 형식입니다.");
+                throw new BadRequestException("잘못된 형식입니다.");
 
             await coffee.AddMenuAsync(menu);
-            await coffee.SaveAsync();
 
             return Ok($"{menu.Id}를 {menu.Price}원으로 추가하였습니다.");
         }
@@ -48,10 +47,9 @@ namespace SlackCoffee.Controllers.CoffeeCommands
         {
             var menu = UnpackMenu(text);
             if (menu == null)
-                return BadRequest("잘못된 형식입니다.");
+                throw new BadRequestException("잘못된 형식입니다.");
 
             await coffee.ChangeMenuAsync(menu);
-            await coffee.SaveAsync();
 
             return Ok($"{menu.Id}를 {menu.Price}원으로 수정하였습니다.");
         }
@@ -61,12 +59,11 @@ namespace SlackCoffee.Controllers.CoffeeCommands
         {
             var splitted = text.Split(' ').Select(s => s.Trim()).ToArray();
             if (splitted.Length != 2 || !int.TryParse(splitted[1], out var enabledInt))
-                return BadRequest("잘못된 형식입니다.");
+                throw new BadRequestException("잘못된 형식입니다.");
 
             var enabled = enabledInt > 0;
             await coffee.EnableMenuAsync(splitted[0], enabled);
 
-            await coffee.SaveAsync();
             return Ok($"{splitted[0]}을 {(enabled ? "활성화" : "비활성화")} 시켰습니다.");
         }
 
