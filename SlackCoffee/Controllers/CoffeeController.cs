@@ -98,17 +98,15 @@ namespace SlackCoffee.Controllers
         public async Task<IActionResult> Do()
         {
             using var coffee = new CoffeeService(_coffeeContext);
+            var request = new SlackRequest(Request.Form);
 
-            string id = Request.Form["user_id"];
-            string name = Request.Form["user_name"];
-
-            var user = await coffee.FindUserAsync(id);
+            var user = await coffee.FindUserAsync(request.UserId);
             if (user == null)
             {
-                user = await coffee.CreateUserAsync(id, false);
+                user = await coffee.CreateUserAsync(request.UserId, false);
             }
 
-            var splitted = Request.Form["text"].ToString().Trim().Split(' ', 2);
+            var splitted = request.Text.ToString().Trim().Split(' ', 2);
 
             var command = splitted[0];
             var option = splitted.Length > 1 ? splitted[1] : "";
