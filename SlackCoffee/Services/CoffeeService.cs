@@ -119,12 +119,12 @@ namespace SlackCoffee.Services
             return order;
         }
 
-        public async Task<bool> CancelOrderAsync(string id)
+        public async Task<bool> CancelOrderAsync(string userId)
         {
             await BeginTransactionAsync();
 
             var prevOrders = await _context.Orders
-                .Where(o => o.UserId == id).ToArrayAsync();
+                .Where(o => o.UserId == userId).ToArrayAsync();
 
             if (prevOrders.Length > 0)
             {
@@ -135,7 +135,12 @@ namespace SlackCoffee.Services
             return false;
         }
 
-        public async Task<List<Order>> PickMoreOrderAsync(uint count, DateTime at)
+        public async Task<List<Order>> GetOrdersAsync(DateTime at)
+        {
+            return await _context.Orders.Where(o => o.OrderedAt > (at - OrderTolerance)).ToListAsync();
+        }
+
+        public async Task<List<Order>> PickMoreOrderAsync(int count, DateTime at)
         {
             await BeginTransactionAsync();
 
@@ -147,7 +152,7 @@ namespace SlackCoffee.Services
             if (count < candidates.Count)
             {
                 candidates.Shuffle();
-                candidates = candidates.GetRange(0, (int)count);
+                candidates = candidates.GetRange(0, count);
             }
 
             if (candidates.Count > 0)
@@ -159,7 +164,7 @@ namespace SlackCoffee.Services
             return candidates;
         }
 
-        public async Task<List<Order>> PickOrderAsync(uint count, DateTime at)
+        public async Task<List<Order>> PickOrderAsync(int count, DateTime at)
         {
             await BeginTransactionAsync();
 
@@ -182,7 +187,7 @@ namespace SlackCoffee.Services
                 .Where(o => !managerIds.Contains(o.UserId))
                 .ToListAsync();
 
-            var neededCount = Math.Max((int)count - managers.Count, 0);
+            var neededCount = Math.Max(count - managers.Count, 0);
             if (neededCount < candidates.Count)
             {
                 candidates.Shuffle();
@@ -231,6 +236,14 @@ namespace SlackCoffee.Services
             _context.Users.UpdateRange(pickedUsers.Values);
 
             return pickedOrders;
+        }
+
+        public async Task ResetOrdersAsync()
+        {
+            await BeginTransactionAsync();
+
+            var orders = await _context.Orders.ToListAsync();
+            _context.Orders.RemoveRange(orders);
         }
 
         public async Task<User> FillWalletAsync(string userId, int amount, DateTime at)
