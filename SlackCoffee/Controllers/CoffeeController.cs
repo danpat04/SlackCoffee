@@ -81,20 +81,6 @@ namespace SlackCoffee.Controllers
         }
 
         [HttpPost]
-        [AllowAnonymous]
-        public async Task<IActionResult> Test2()
-        {
-            using var reader = new StreamReader(Request.Body);
-            return SlackOk(await reader.ReadToEndAsync());
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Test()
-        {
-            return SlackOk("OK");
-        }
-
-        [HttpPost]
         public async Task<IActionResult> Do()
         {
             using var coffee = new CoffeeService(_coffeeContext);
