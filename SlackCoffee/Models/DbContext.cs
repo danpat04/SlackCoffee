@@ -18,7 +18,6 @@ namespace SlackCoffee.Models
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<WalletHistory>()
-                .HasNoKey()
                 .HasIndex(h => h.UserId);
         }
     }

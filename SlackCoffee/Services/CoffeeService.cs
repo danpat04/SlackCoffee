@@ -250,8 +250,8 @@ namespace SlackCoffee.Services
             user.Deposit += amount;
             _context.Users.Update(user);
 
-            var history = new WalletHistory { UserId = userId, Amount = amount, At = at };
-            await _context.WalletHistory.AddAsync(history);
+            var history = new WalletHistory { Id = Guid.NewGuid().ToString(), UserId = userId, Amount = amount, At = at };
+            _context.WalletHistory.Add(history);
 
             return user;
         }
