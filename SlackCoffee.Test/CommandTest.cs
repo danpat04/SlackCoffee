@@ -15,18 +15,13 @@ namespace SlackCoffee.Test
         public bool Manager { get; set; }
     }
 
-    class TestCommand : Command<TestUser>
+    class TestCommand : Command
     {
         public readonly bool ForManager;
 
         public TestCommand(string id, bool forManager) : base(id)
         {
             ForManager = forManager;
-        }
-
-        public override bool Authorized(TestUser user)
-        {
-            return !ForManager || user.Manager;
         }
 
         public override string MakeDescription()
@@ -49,7 +44,7 @@ namespace SlackCoffee.Test
 
     class TestClass
     {
-        private static CommandHandlers<TestClass, TestUser> handlers = new CommandHandlers<TestClass, TestUser>();
+        private static CommandHandlers<TestClass, TestCommand> handlers = new CommandHandlers<TestClass, TestCommand>();
 
         [TestCommand("ReturnTypeError", true)]
         public int ReturnTypeErrorHandler(TestUser user, string text)
@@ -81,12 +76,19 @@ namespace SlackCoffee.Test
             return new OkResult();
         }
 
-        public async Task<IActionResult> Handle(TestUser user, string command)
+        public async Task<IActionResult> Handle(TestUser user, string commandId)
         {
-            var handler = handlers.GetHandler(this, user, command);
-            if (handler == null)
+            if (!handlers.TryGetHandler(commandId, out var handlerInfo))
                 return new BadRequestResult();
-            return await handler("");
+
+            var command = handlerInfo.Key;
+            var methodInfo = handlerInfo.Value;
+
+            if (command.ForManager && !user.Manager)
+                return new BadRequestResult();
+
+            var task = (Task<IActionResult>)methodInfo.Invoke(this, new object[] { user, "" });
+            return await task;
         }
     }
 
