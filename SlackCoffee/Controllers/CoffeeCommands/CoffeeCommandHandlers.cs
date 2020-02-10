@@ -2,6 +2,7 @@
 using SlackCoffee.Models;
 using SlackCoffee.Services;
 using SlackCoffee.Utils;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace SlackCoffee.Controllers.CoffeeCommands
@@ -20,14 +21,13 @@ namespace SlackCoffee.Controllers.CoffeeCommands
 
         public override string MakeDescription()
         {
-            if (ForManager)
-                return $"[운영자 전용] {Description}";
             return Description;
         }
 
         public override int CompareTo(object other)
         {
-            if (ForManager == ((CoffeeCommand)other).ForManager) return 0;
+            var oc = (CoffeeCommand)other;
+            if (ForManager == oc.ForManager) return Id.CompareTo(oc.Id);
             return ForManager ? -1 : 1;
         }
     }
@@ -67,6 +67,20 @@ namespace SlackCoffee.Controllers.CoffeeCommands
                 throw new OnlyForManagerException();
 
             return await (Task<SlackResponse>)methodInfo.Invoke(this, new object[] { coffee, user, options });
+        }
+
+        [CoffeeCommand("도움", "명령어 목록을 표시합니다", false)]
+        public async Task<SlackResponse> GetHelp(CoffeeService coffee, User user, string text)
+        {
+            var sb = new StringBuilder();
+            foreach ((var command, var name, var description) in handlers.GetDescriptions())
+            {
+                if (command.ForManager && !user.IsManager)
+                    continue;
+
+                sb.AppendLine($"*{name}* : {description}");
+            }
+            return Ok(sb.ToString());
         }
     }
 }

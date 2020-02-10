@@ -14,7 +14,7 @@ namespace SlackCoffee
 
     public class CommandNotFoundException : BadRequestException
     {
-        public override string ResponseMsg => "없는 명령어 입니다.";
+        public override string ResponseMsg => "없는 명령어 입니다. */커피 도움* 을 통해 명령어를 알아보세요.";
     }
 
     public class OnlyForManagerException : BadRequestException

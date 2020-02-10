@@ -63,12 +63,12 @@ namespace SlackCoffee.Utils
             return handlers.TryGetValue(commandId, out handlerInfo);
         }
 
-        public IEnumerable<KeyValuePair<string, string>> GetDescriptions()
+        public IEnumerable<(TCommand, string, string)> GetDescriptions()
         {
             var commands = handlers.Values.Select(kv => kv.Key).ToList();
             commands.Sort();
 
-            return commands.Select(c => new KeyValuePair<string, string>(c.Id, c.MakeDescription()));
+            return commands.Select(c => (c, c.Id, c.MakeDescription()));
         }
     }
 }

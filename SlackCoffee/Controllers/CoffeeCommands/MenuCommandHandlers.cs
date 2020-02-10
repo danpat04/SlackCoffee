@@ -67,7 +67,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             return Ok($"{splitted[0]}을 {(enabled ? "활성화" : "비활성화")} 시켰습니다.");
         }
 
-        [CoffeeCommand("메뉴", "", false)]
+        [CoffeeCommand("메뉴", "메뉴 목록을 표시합니다", false)]
         public async Task<SlackResponse> GetMenu(CoffeeService coffee, User user, string text)
         {
             var menus = await coffee.GetMenusAsync();

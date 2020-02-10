@@ -25,7 +25,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
 
     public partial class CoffeeCommandHandlers
     {
-        [CoffeeCommand("주문", "[메뉴] [옵션]", false)]
+        [CoffeeCommand("주문", "커피를 주문합니다 (사용법: [메뉴] [옵션])", false)]
         public async Task<SlackResponse> MakeOrder(CoffeeService coffee, User user, string text)
         {
             var order  = await coffee.MakeOrderAsync(user.Id, text, DateTime.Now);
@@ -34,7 +34,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             return Ok($"{order.MenuId}를 예약하였습니다.\n {order.Price}원 - 현재 잔액 {deposit}원");
         }
 
-        [CoffeeCommand("주문취소", "", false)]
+        [CoffeeCommand("주문취소", "주문한 커피를 취소합니다", false)]
         public async Task<SlackResponse> CancelOrder(CoffeeService coffee, User user, string text)
         {
             var canceled = await coffee.CancelOrderAsync(user.Id);
@@ -42,7 +42,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             return Ok(canceled ? "취소하였습니다." : "예약이 없습니다.");
         }
 
-        [CoffeeCommand("명단", "", false)]
+        [CoffeeCommand("명단", "현재 신청자 목록을 표시합니다", false)]
         public async Task<SlackResponse> GetOrders(CoffeeService coffee, User user, string text)
         {
             var at = DateTime.Now;
@@ -51,13 +51,20 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             if (orders.Count <= 0)
                 return Ok("주문자가 없습니다.");
 
-            var sb = new StringBuilder($"총 {orders.Count}명").AppendLine();
+            var pickedCount = orders.Count(o => o.IsPicked);
+            var sb = new StringBuilder();
+
+            if (pickedCount > 0)
+                sb.AppendLine($"총 {orders.Count}명 중 {pickedCount}명 당첨");
+            else
+                sb.AppendLine($"총 {orders.Count}명");
+
             sb.AppendOrders(orders);
 
             return Ok(sb.ToString());
         }
 
-        [CoffeeCommand("추첨", "[인원수] (인원수 만큼 랜덤 추첨)", true)]
+        [CoffeeCommand("추첨", "인원수 만큼 랜덤하게 추첨합니다 (사용법: [인원수])", true)]
         public async Task<SlackResponse> PickOrders(CoffeeService coffee, User user, string text)
         {
             if (!int.TryParse(text, out var count))
@@ -78,7 +85,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             return Ok(sb.ToString(), true);
         }
 
-        [CoffeeCommand("추가추첨", "[인원수] (인원수 만큼 선착순 추첨)", true)]
+        [CoffeeCommand("추가추첨", "인원수 만큼 선착순으로 추첨합니다 (사용법: [인원수])", true)]
         public async Task<SlackResponse> PickMoreOrders(CoffeeService coffee, User user, string text)
         {
             if (!int.TryParse(text, out var count))
@@ -101,7 +108,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             return Ok(sb.ToString(), true);
         }
 
-        [CoffeeCommand("완성", "", true)]
+        [CoffeeCommand("완성", "주문자들에게 완성을 알리고 요금을 계산합니다", true)]
         public async Task<SlackResponse> CompleteOrders(CoffeeService coffee, User user, string text)
         {
             var orders = await coffee.CompleteOrderAsync();
@@ -115,7 +122,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             return Ok(sb.ToString(), true);
         }
 
-        [CoffeeCommand("리셋", "모든 주문을 리셋", true)]
+        [CoffeeCommand("리셋", "모든 주문을 리셋합니다", true)]
         public async Task<SlackResponse> ResetOrders(CoffeeService coffee, User user, string text)
         {
             await coffee.ResetOrdersAsync();
