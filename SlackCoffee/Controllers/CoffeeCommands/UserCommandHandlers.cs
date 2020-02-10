@@ -42,7 +42,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             var isManager = isManagerInt > 0;
             await coffee.UpdateUserAsync(userId, isManager);
 
-            return Ok(isManager ? "운영자로 지정 하였습니다." : "일반 사용자로 지정 하였습니다.");
+            return Ok(isManager ? "운영자로 지정 하였습니다." : "일반 사용자로 지정 하였습니다.", true);
         }
     }
 }

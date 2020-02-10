@@ -30,13 +30,16 @@ namespace SlackCoffee.Controllers.CoffeeCommands
         public async Task<SlackResponse> MakeOrder(CoffeeService coffee, User user, string text)
         {
             var order  = await coffee.MakeOrderAsync(user.Id, text, DateTime.Now);
-            return Ok($"{order.MenuId}를 예약하였습니다. ({order.Price}원)");
+            var deposit = await coffee.GetDepositAsync(user.Id);
+            // TODO: 채널에도 예약했음을 알리기
+            return Ok($"{order.MenuId}를 예약하였습니다.\n {order.Price}원 - 현재 잔액 {deposit}원");
         }
 
         [CoffeeCommand("주문취소", "", false)]
         public async Task<SlackResponse> CancelOrder(CoffeeService coffee, User user, string text)
         {
             var canceled = await coffee.CancelOrderAsync(user.Id);
+            // TODO: 채널에도 예약 취소되었음을 알리기
             return Ok(canceled ? "취소하였습니다." : "예약이 없습니다.");
         }
 
@@ -70,6 +73,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             var sb = new StringBuilder($"<당첨자 명단> {orders.Count}명 중에 {picked.Count}명").AppendLine();
             sb.AppendOrders(picked, false);
 
+            // TODO: 왓카페 채널에 추첨 명단을 알리기
             return Ok(sb.ToString(), true);
         }
 
@@ -90,6 +94,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             var sb = new StringBuilder($"<추가 당첨자 명단> {candidatesCount}명 중에 {picked.Count}명").AppendLine();
             sb.AppendOrders(picked, false);
 
+            // TODO: 왓카페 채널에 추첨 명단을 알리기
             return Ok(sb.ToString(), true);
         }
 
