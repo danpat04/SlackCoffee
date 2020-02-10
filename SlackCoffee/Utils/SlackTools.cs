@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+﻿using System.Text.RegularExpressions;
 
 namespace SlackCoffee.Utils
 {
@@ -14,12 +9,17 @@ namespace SlackCoffee.Utils
             return $"<@{userId}>";
         }
 
-        private static readonly Regex UserIdPattern = new Regex(@"^\<\@(<userId>)\>$");
+        private static readonly Regex UserIdPattern = new Regex(@"^<@(?<userId>[A-Z0-9]+)\|[a-zA-Z0-9' \.]+>$");
 
         public static string StringToUserId(string text)
         {
             var matches = UserIdPattern.Matches(text);
-            return matches.Count != 1 ? null : matches[0].Value;
+            foreach (Match match in matches)
+            {
+                if (match.Groups.TryGetValue("userId", out var value))
+                    return value.Value;
+            }
+            return null;
         }
     }
 }
