@@ -263,6 +263,15 @@ namespace SlackCoffee.Services
             return user;
         }
 
+        public async Task<int> GetDepositAsync(string userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                throw new BadRequestException("존재하지 않는 사용자입니다.");
+
+            return user.Deposit;
+        }
+
         public async Task<User> FindUserAsync(string userId)
         {
             return await _context.Users.FindAsync(userId);
