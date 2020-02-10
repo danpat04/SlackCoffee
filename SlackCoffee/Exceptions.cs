@@ -41,4 +41,9 @@ namespace SlackCoffee
     {
         public override string ResponseMsg => "존재하지 않는 메뉴 입니다.";
     }
+
+    public class MenuDisabledException : BadRequestException
+    {
+        public override string ResponseMsg => "비활성화 된 메뉴 입니다.";
+    }
 }

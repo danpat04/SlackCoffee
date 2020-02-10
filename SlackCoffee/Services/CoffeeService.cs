@@ -51,7 +51,7 @@ namespace SlackCoffee.Services
         private async Task SetPriceAsync(Order order)
         {
             var menu = await _context.Menus.FindAsync(order.MenuId);
-            var price = menu == null ? 0 : menu.Price;
+            var price = menu?.Price ?? 0;
             order.Price = price + (Math.Min(order.ShotCount - 1, 0) * 500);
         }
 
@@ -72,6 +72,12 @@ namespace SlackCoffee.Services
                 if (lastOrder == null)
                     throw new BadRequestException("이전 주문이 없습니다.");
 
+                var menu = await _context.Menus.FindAsync(lastOrder.MenuId);
+                if (menu == null)
+                    throw new MenuNotFoundException();
+                if (!menu.Enabled)
+                    throw new MenuDisabledException();
+
                 order = Order.Reorder(lastOrder, at);
                 await SetPriceAsync(order);
             }
@@ -90,11 +96,11 @@ namespace SlackCoffee.Services
                     options = "";
                 }
 
-                var menu = await _context.Menus
-                    .Where(m => m.Id == menuName)
-                    .FirstOrDefaultAsync();
+                var menu = await _context.Menus.FindAsync(menuName);
                 if (menu == null)
                     throw new MenuNotFoundException();
+                if (!menu.Enabled)
+                    throw new MenuDisabledException();
 
                 order = new Order(userId, menu.Id, options, at);
                 await SetPriceAsync(order);
