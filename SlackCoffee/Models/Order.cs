@@ -51,6 +51,8 @@ namespace SlackCoffee.Models
 
             PickedAt = DateTime.MinValue;
         }
+
+        public bool IsPicked => PickedAt > DateTime.MinValue;
     }
 
     public class Order : OrderBase
