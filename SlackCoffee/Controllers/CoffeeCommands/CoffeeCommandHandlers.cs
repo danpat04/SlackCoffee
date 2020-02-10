@@ -58,13 +58,13 @@ namespace SlackCoffee.Controllers.CoffeeCommands
         public async Task<SlackResponse> HandleCommandAsync(CoffeeService coffee, User user, string commandId, string options, ILogger logger = null)
         {
             if (!handlers.TryGetHandler(commandId, out var handlerInfo))
-                throw new BadRequestException("없는 명령어입니다.");
+                throw new CommandNotFoundException();
 
             var command = handlerInfo.Key;
             var methodInfo = handlerInfo.Value;
 
             if (command.ForManager && !user.IsManager)
-                throw new BadRequestException("운영자 전용 명령어입니다.");
+                throw new OnlyForManagerException();
 
             return await (Task<SlackResponse>)methodInfo.Invoke(this, new object[] { coffee, user, options });
         }

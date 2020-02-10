@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using SlackCoffee.Models;
 using SlackCoffee.Services;
 using SlackCoffee.Utils;
@@ -15,7 +13,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
         public async Task<SlackResponse> FillWallet(CoffeeService coffee, User user, string text)
         {
             if (!int.TryParse(text, out var amount))
-                throw new BadRequestException("잘못된 형식입니다.");
+                throw new NotWellFormedException();
 
             var u = await coffee.FillWalletAsync(user.Id, amount, DateTime.Now);
             return Ok($"현재 잔액은 {u.Deposit}원 입니다.");
@@ -24,7 +22,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
         [CoffeeCommand("잔액", "", false)]
         public async Task<SlackResponse> GetDeposit(CoffeeService coffee, User user, string text)
         {
-            var deposit = coffee.GetDepositAsync(user.Id);
+            var deposit = await coffee.GetDepositAsync(user.Id);
             return Ok($"현재 잔액은 {deposit}원 입니다.");
         }
 
@@ -33,11 +31,11 @@ namespace SlackCoffee.Controllers.CoffeeCommands
         {
             string[] splitted = text.Split(' ').Select(s => s.Trim()).ToArray();
             if (splitted.Length != 2 || !int.TryParse(splitted[1], out var isManagerInt))
-                throw new BadRequestException("잘못된 형식입니다.");
+                throw new NotWellFormedException();
 
             var userId = SlackTools.StringToUserId(splitted[0]);
             if (userId == null)
-                throw new BadRequestException("잘못된 형식입니다.");
+                throw new NotWellFormedException();
 
             var isManager = isManagerInt > 0;
             await coffee.UpdateUserAsync(userId, isManager);

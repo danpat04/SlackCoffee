@@ -14,19 +14,7 @@ namespace SlackCoffee.Services
 
         private readonly CoffeeContext _context;
 
-        private IDbContextTransaction __transaction = null;
-        private IDbContextTransaction _transaction
-        {
-            get { return __transaction; }
-            set
-            {
-                if (value == null)
-                {
-                    value = null;
-                }
-                __transaction = value;
-            }
-        }
+        private IDbContextTransaction _transaction;
 
         public CoffeeService(CoffeeContext context)
         {
@@ -35,8 +23,7 @@ namespace SlackCoffee.Services
 
         public void Dispose()
         {
-            if (_transaction != null)
-                _transaction.Dispose();
+            _transaction?.Dispose();
         }
 
         public async ValueTask DisposeAsync()
@@ -107,7 +94,7 @@ namespace SlackCoffee.Services
                     .Where(m => m.Id == menuName)
                     .FirstOrDefaultAsync();
                 if (menu == null)
-                    throw new BadRequestException("없는 메뉴 입니다.");
+                    throw new MenuNotFoundException();
 
                 order = new Order(userId, menu.Id, options, at);
                 await SetPriceAsync(order);
@@ -168,7 +155,7 @@ namespace SlackCoffee.Services
         {
             await BeginTransactionAsync();
 
-            var pickedCount = _context.Orders.Where(o => o.PickedAt > DateTime.MinValue).Count();
+            var pickedCount = _context.Orders.Count(o => o.PickedAt > DateTime.MinValue);
             if (pickedCount > 0)
                 throw new BadRequestException("이미 추첨한 상태입니다.");
 
@@ -252,7 +239,7 @@ namespace SlackCoffee.Services
 
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
-                throw new BadRequestException("존재하지 않는 사용자입니다.");
+                throw new UserNotFoundException();
 
             user.Deposit += amount;
             _context.Users.Update(user);
@@ -267,7 +254,7 @@ namespace SlackCoffee.Services
         {
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
-                throw new BadRequestException("존재하지 않는 사용자입니다.");
+                throw new UserNotFoundException();
 
             return user.Deposit;
         }
@@ -297,7 +284,7 @@ namespace SlackCoffee.Services
 
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
-                throw new BadRequestException("존재하지 않는 사용자입니다.");
+                throw new UserNotFoundException();
 
             user.IsManager = isManager;
             _context.Users.Update(user);
@@ -322,7 +309,7 @@ namespace SlackCoffee.Services
 
             var prevMenu = await _context.Menus.FindAsync(menu.Id);
             if (prevMenu == null)
-                throw new BadRequestException("없는 메뉴입니다.");
+                throw new MenuNotFoundException();
 
             prevMenu.Update(menu);
             _context.Menus.Update(prevMenu);
@@ -334,7 +321,7 @@ namespace SlackCoffee.Services
 
             var menu = await _context.Menus.FindAsync(menuId);
             if (menu == null)
-                throw new BadRequestException("없는 메뉴입니다.");
+                throw new MenuNotFoundException();
 
             menu.Enabled = enabled;
             _context.Menus.Update(menu);

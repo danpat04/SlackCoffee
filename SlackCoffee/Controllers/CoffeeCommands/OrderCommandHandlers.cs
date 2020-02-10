@@ -62,7 +62,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
         public async Task<SlackResponse> PickOrders(CoffeeService coffee, User user, string text)
         {
             if (int.TryParse(text, out var count))
-                throw new BadRequestException("잘못된 형식입니다.");
+                throw new NotWellFormedException();
 
             var at = DateTime.Now;
 
@@ -81,13 +81,13 @@ namespace SlackCoffee.Controllers.CoffeeCommands
         public async Task<SlackResponse> PickMoreOrders(CoffeeService coffee, User user, string text)
         {
             if (int.TryParse(text, out var count))
-                throw new BadRequestException("잘못된 형식입니다.");
+                throw new NotWellFormedException();
 
             var at = DateTime.Now;
 
             var picked = await coffee.PickMoreOrderAsync(count, at);
             if (picked.Count <= 0)
-                throw new BadRequestException("추가 추첨할 인원이 없습니다.");
+                throw new NoOneToPickException();
 
             var orders = await coffee.GetOrdersAsync(at);
             var candidatesCount = picked.Count + orders.Count(o => o.PickedAt <= DateTime.MinValue);

@@ -35,7 +35,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
         {
             var menu = UnpackMenu(text);
             if (menu == null)
-                throw new BadRequestException("잘못된 형식입니다.");
+                throw new NotWellFormedException();
 
             await coffee.AddMenuAsync(menu);
 
@@ -47,7 +47,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
         {
             var menu = UnpackMenu(text);
             if (menu == null)
-                throw new BadRequestException("잘못된 형식입니다.");
+                throw new NotWellFormedException();
 
             await coffee.ChangeMenuAsync(menu);
 
@@ -59,7 +59,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
         {
             var splitted = text.Split(' ').Select(s => s.Trim()).ToArray();
             if (splitted.Length != 2 || !int.TryParse(splitted[1], out var enabledInt))
-                throw new BadRequestException("잘못된 형식입니다.");
+                throw new NotWellFormedException();
 
             var enabled = enabledInt > 0;
             await coffee.EnableMenuAsync(splitted[0], enabled);

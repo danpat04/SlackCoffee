@@ -51,7 +51,7 @@ namespace SlackCoffee.Controllers
             }
             catch (BadRequestException e)
             {
-                return Ok(e.Message);
+                return Ok(e.ResponseMsg);
             }
 
             await coffee.SaveAsync();
