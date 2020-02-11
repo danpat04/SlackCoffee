@@ -21,13 +21,6 @@ namespace SlackCoffee
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                    webBuilder.ConfigureKestrel(serverOptions =>
-                    {
-                        serverOptions.Listen(System.Net.IPAddress.Any, 443, listenOptions =>
-                        {
-                            listenOptions.UseHttps();
-                        });
-                    });
                 });
     }
 }
