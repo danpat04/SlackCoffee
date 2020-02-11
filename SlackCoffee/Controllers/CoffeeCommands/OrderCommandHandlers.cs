@@ -31,7 +31,8 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             var order  = await coffee.MakeOrderAsync(user.Id, text, DateTime.Now);
             var deposit = await coffee.GetDepositAsync(user.Id);
             // TODO: 채널에도 예약했음을 알리기
-            return Ok($"{order.MenuId}를 예약하였습니다.\n {order.Price}원 - 현재 잔액 {deposit}원");
+            // return Ok($"{order.MenuId}를 예약하였습니다.\n {order.Price}원 - 현재 잔액 {deposit}원");
+            return Ok($"{order.MenuId}를 예약하였습니다.", true);
         }
 
         [CoffeeCommand("주문취소", "주문한 커피를 취소합니다", false)]
