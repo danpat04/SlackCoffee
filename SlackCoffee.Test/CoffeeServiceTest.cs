@@ -67,7 +67,7 @@ namespace SlackCoffee.Test
             // 이전 주문이 없어서 실패
             await Assert.ThrowsAsync<BadRequestException>(() => service.MakeOrderAsync("id1", "", at));
             // 없는 메뉴이기 때문에 실패
-            await Assert.ThrowsAsync<BadRequestException>(() => service.MakeOrderAsync("id1", "없는메뉴", at));
+            await Assert.ThrowsAsync<MenuNotFoundException>(() => service.MakeOrderAsync("id1", "없는메뉴", at));
 
             var order = await service.MakeOrderAsync("id1", "메뉴1", at);
             await context.SaveChangesAsync();

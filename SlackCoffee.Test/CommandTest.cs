@@ -101,9 +101,9 @@ namespace SlackCoffee.Test
             var user = new TestUser { Id = "user02", Manager = false };
             var t = new TestClass();
 
-            await Assert.ThrowsAsync<CommandHandlerException>(() => t.Handle(manager, "ReturnTypeError"));
-            await Assert.ThrowsAsync<CommandHandlerException>(() => t.Handle(manager, "InputTypeError"));
-            await Assert.ThrowsAsync<CommandHandlerException>(() => t.Handle(manager, "ParameterCountError"));
+            await Assert.ThrowsAsync<InvalidCastException>(() => t.Handle(manager, "ReturnTypeError"));
+            await Assert.ThrowsAsync<ArgumentException>(() => t.Handle(manager, "InputTypeError"));
+            await Assert.ThrowsAsync<TargetParameterCountException>(() => t.Handle(manager, "ParameterCountError"));
 
             Assert.IsType<OkResult>(await t.Handle(manager, "Manager"));
             Assert.IsType<OkResult>(await t.Handle(manager, "Normal"));
