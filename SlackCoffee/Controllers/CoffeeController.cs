@@ -26,6 +26,13 @@ namespace SlackCoffee.Controllers
             _logger = logger;
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> Check()
+        {
+            return Ok("CoffeeBot Working!");
+        }
+
         [HttpPost]
         public async Task<IActionResult> Do()
         {
