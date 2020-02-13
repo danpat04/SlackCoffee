@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -15,14 +16,47 @@ namespace SlackCoffee.Utils
     public class SlackAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {
         private const string SlackVerificationVersion = "v0";
+        private readonly SlackConfig _slackConfig;
 
         public SlackAuthenticationHandler(
             IOptionsMonitor<AuthenticationSchemeOptions> options,
             ILoggerFactory logger,
             UrlEncoder encoder,
-            ISystemClock clock)
+            ISystemClock clock,
+            IOptions<SlackConfig> slackConfig)
             : base(options, logger, encoder, clock)
         {
+            _slackConfig = slackConfig.Value;
+        }
+
+        private Dictionary<string, HMACSHA256> _hashes;
+
+        private string GetWorkspace(byte[] baseString, string signature)
+        {
+            if (_hashes == null)
+            {
+                foreach (var workspace in _slackConfig.SlackWorkspaces)
+                {
+                    var key = Encoding.ASCII.GetBytes(workspace.SigningSecret);
+                    _hashes.Add(workspace.Name, new HMACSHA256(key));
+                }
+            }
+
+            foreach (var info in _hashes)
+            {
+                if (ComputeSignature(info.Value, baseString) == signature)
+                    return info.Key;
+            }
+            return null;
+        }
+
+        private string ComputeSignature(HMACSHA256 hash, byte[] baseString)
+        {
+            byte[] hashedValue = hash.ComputeHash(baseString);
+            StringBuilder hex = new StringBuilder("v0=", hashedValue.Length * 2 + 3);
+            foreach (byte b in hashedValue)
+                hex.AppendFormat("{0:x2}", b);
+            return hex.ToString();
         }
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -42,22 +76,12 @@ namespace SlackCoffee.Utils
             Request.Body.Seek(0, SeekOrigin.Begin);
 
             var baseString = Encoding.ASCII.GetBytes($"{SlackVerificationVersion}:{requestTimestamp[0]}:{body}");
-            var key = Encoding.ASCII.GetBytes("c16aded04edf407c06e252191dc375c5");
-            using var hmac = new HMACSHA256(key);
-
-            byte[] hashValue = hmac.ComputeHash(baseString);
-            StringBuilder hex = new StringBuilder("v0=", hashValue.Length * 2 + 3);
-            foreach (byte b in hashValue)
-                hex.AppendFormat("{0:x2}", b);
-
-            var ourSignature = hex.ToString();
-            var theirSignature = slackSignature[0];
-
-            if (ourSignature != theirSignature)
+            var workspace = GetWorkspace(baseString, slackSignature);
+            if (workspace == null)
                 return AuthenticateResult.Fail("Signature check missed");
 
             var claims = new[] {
-                new Claim("SlackSignature", ourSignature)
+                new Claim("SlackWorkspace", workspace)
             };
 
             var identity = new ClaimsIdentity(claims, Scheme.Name);

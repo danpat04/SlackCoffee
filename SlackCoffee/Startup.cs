@@ -38,7 +38,9 @@ namespace SlackCoffee
 
             services.AddAuthorization(options =>
                 options.AddPolicy("Slack",
-                policy => policy.RequireClaim("SlackSignature")));
+                policy => policy.RequireClaim("SlackWorkspace")));
+
+            services.Configure<SlackConfig>(Configuration.GetSection("Slack"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
