@@ -1,10 +1,12 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SlackCoffee.Controllers.CoffeeCommands;
 using SlackCoffee.Models;
 using SlackCoffee.Services;
+using SlackCoffee.SlackAuthentication;
 using SlackCoffee.Utils;
 
 namespace SlackCoffee.Controllers
@@ -15,13 +17,15 @@ namespace SlackCoffee.Controllers
     [ApiController]
     public class CoffeeController : ControllerBase
     {
+        private readonly ISlackService _slackService;
         private readonly CoffeeContext _coffeeContext;
         private readonly ILogger _logger;
 
         private static CoffeeCommandHandlers commands = new CoffeeCommandHandlers();
 
-        public CoffeeController(CoffeeContext context, ILogger<CoffeeController> logger)
+        public CoffeeController(ISlackService slackService, CoffeeContext context, ILogger<CoffeeController> logger)
         {
+            _slackService = slackService;
             _coffeeContext = context;
             _logger = logger;
         }

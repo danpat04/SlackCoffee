@@ -12,6 +12,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SlackCoffee.Models;
+using SlackCoffee.Services;
+using SlackCoffee.SlackAuthentication;
 using SlackCoffee.Utils;
 
 namespace SlackCoffee
@@ -35,6 +37,10 @@ namespace SlackCoffee
             services.AddSlackAuthorization();
 
             services.Configure<SlackConfig>(Configuration.GetSection("Slack"));
+
+            services.AddHttpClient();
+
+            services.AddSingleton<ISlackService, SlackService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
