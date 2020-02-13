@@ -11,7 +11,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 
-namespace SlackCoffee.Utils
+namespace SlackCoffee.SlackAuthentication
 {
     public class SlackAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {
@@ -35,7 +35,8 @@ namespace SlackCoffee.Utils
         {
             if (_hashes == null)
             {
-                foreach (var workspace in _slackConfig.SlackWorkspaces)
+                _hashes = new Dictionary<string, HMACSHA256>();
+                foreach (var workspace in _slackConfig.Workspaces)
                 {
                     var key = Encoding.ASCII.GetBytes(workspace.SigningSecret);
                     _hashes.Add(workspace.Name, new HMACSHA256(key));

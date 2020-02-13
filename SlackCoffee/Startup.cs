@@ -32,13 +32,7 @@ namespace SlackCoffee
 
             services.AddDbContext<CoffeeContext>();
 
-            // configure slack authentication 
-            services.AddAuthentication("SlackAuthentication")
-                .AddScheme<AuthenticationSchemeOptions, SlackAuthenticationHandler>("SlackAuthentication", null);
-
-            services.AddAuthorization(options =>
-                options.AddPolicy("Slack",
-                policy => policy.RequireClaim("SlackWorkspace")));
+            services.AddSlackAuthorization();
 
             services.Configure<SlackConfig>(Configuration.GetSection("Slack"));
         }

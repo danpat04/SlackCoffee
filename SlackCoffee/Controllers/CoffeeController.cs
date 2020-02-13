@@ -11,7 +11,7 @@ namespace SlackCoffee.Controllers
 {
 
     [Route("coffee/[action]")]
-    [Authorize(Policy = "Slack")]
+    [SlackAuthorize]
     [ApiController]
     public class CoffeeController : ControllerBase
     {

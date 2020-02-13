@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace SlackCoffee.Utils
+﻿namespace SlackCoffee.SlackAuthentication
 {
     public class SlackWorkspace
     {
@@ -14,6 +9,6 @@ namespace SlackCoffee.Utils
 
     public class SlackConfig
     {
-        public SlackWorkspace[] SlackWorkspaces { get; set; }
+        public SlackWorkspace[] Workspaces { get; set; }
     }
 }
