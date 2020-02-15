@@ -28,19 +28,24 @@ namespace SlackCoffee.Controllers.CoffeeCommands
         [CoffeeCommand("주문", "커피를 주문합니다 (사용법: [메뉴] [옵션])", false)]
         public async Task<SlackResponse> MakeOrder(CoffeeService coffee, User user, string text)
         {
-            var order  = await coffee.MakeOrderAsync(user.Id, text, DateTime.Now);
+            (var order, bool canceled)  = await coffee.MakeOrderAsync(user.Id, text, DateTime.Now);
             var deposit = await coffee.GetDepositAsync(user.Id);
-            // TODO: 채널에도 예약했음을 알리기
-            // return Ok($"{order.MenuId}를 예약하였습니다.\n {order.Price}원 - 현재 잔액 {deposit}원");
-            return Ok($"{order.MenuId}를 예약하였습니다.", true);
+            return Ok($"{order.MenuId}를 예약하였습니다.\n {order.Price}원 - 현재 잔액 {deposit}원")
+                .AddResponse(
+                $"{user.Name} 님이 {order.MenuId}{(canceled ? "로 변경" : "을 주문")} 하였습니다.",
+                ResponseChannelType.UserChannel);
         }
 
         [CoffeeCommand("주문취소", "주문한 커피를 취소합니다", false)]
         public async Task<SlackResponse> CancelOrder(CoffeeService coffee, User user, string text)
         {
             var canceled = await coffee.CancelOrderAsync(user.Id);
-            // TODO: 채널에도 예약 취소되었음을 알리기
-            return Ok(canceled ? "취소하였습니다." : "예약이 없습니다.");
+            var response = Ok(canceled ? "취소하였습니다." : "예약이 없습니다.");
+            if (canceled)
+                response.AddResponse(
+                    $"{user.Name} 님이 주문을 취소하였습니다.",
+                    ResponseChannelType.UserChannel);
+            return response;
         }
 
         [CoffeeCommand("명단", "현재 신청자 목록을 표시합니다", false)]
@@ -82,8 +87,11 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             var sb = new StringBuilder($"<당첨자 명단> {orders.Count}명 중에 {picked.Count}명").AppendLine();
             sb.AppendOrders(picked);
 
-            // TODO: 왓카페 채널에 추첨 명단을 알리기
-            return Ok(sb.ToString(), true);
+            var responseText = sb.ToString();
+
+            return Ok()
+                .AddResponse(responseText, ResponseChannelType.ManagerChannel)
+                .AddResponse(responseText, ResponseChannelType.UserChannel);
         }
 
         [CoffeeCommand("추가추첨", "인원수 만큼 선착순으로 추첨합니다 (사용법: [인원수])", true)]
@@ -105,8 +113,11 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             var sb = new StringBuilder($"<추가 당첨자 명단> {candidatesCount}명 중에 {picked.Count}명").AppendLine();
             sb.AppendOrders(picked);
 
-            // TODO: 왓카페 채널에 추첨 명단을 알리기
-            return Ok(sb.ToString(), true);
+            var responseText = sb.ToString();
+
+            return Ok()
+                .AddResponse(responseText, ResponseChannelType.ManagerChannel)
+                .AddResponse(responseText, ResponseChannelType.UserChannel);
         }
 
         [CoffeeCommand("완성", "주문자들에게 완성을 알리고 요금을 계산합니다", true)]
@@ -120,7 +131,8 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             }
             sb.Append("님 커피 가져가세요~");
             // TODO: 왓카페 채널에 완성 명단을 알리기
-            return Ok(sb.ToString(), true);
+            return Ok("공지하였습니다.")
+                .AddResponse(sb.ToString(), ResponseChannelType.UserChannel);
         }
 
         [CoffeeCommand("리셋", "모든 주문을 리셋합니다", true)]

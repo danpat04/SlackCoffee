@@ -50,9 +50,9 @@ namespace SlackCoffee.Controllers.CoffeeCommands
     {
         private static CommandHandlers<CoffeeCommandHandlers, CoffeeCommand> handlers = new  CommandHandlers<CoffeeCommandHandlers, CoffeeCommand>();
 
-        private SlackResponse Ok(string text, bool inChannel = false)
+        private MultipleResponse Ok(string text = null, bool inChannel = false)
         {
-            return inChannel ? SimpleResponse.InChannel(text) : SimpleResponse.Ephemeral(text);
+            return new MultipleResponse(text, inChannel);
         }
 
         public async Task<SlackResponse> HandleCommandAsync(CoffeeService coffee, User user, string commandId, string options, ILogger logger = null)

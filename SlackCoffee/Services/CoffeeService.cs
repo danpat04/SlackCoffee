@@ -55,7 +55,7 @@ namespace SlackCoffee.Services
             order.Price = price + (Math.Min(order.ShotCount - 1, 0) * 500);
         }
 
-        public async Task<Order> MakeOrderAsync(string userId, string text, DateTime at)
+        public async Task<(Order, bool)> MakeOrderAsync(string userId, string text, DateTime at)
         {
             await BeginTransactionAsync();
 
@@ -106,10 +106,10 @@ namespace SlackCoffee.Services
                 await SetPriceAsync(order);
             }
 
-            await CancelOrderAsync(userId);
+            var canceled = await CancelOrderAsync(userId);
 
             _context.Orders.Add(order);
-            return order;
+            return (order, canceled);
         }
 
         public async Task<bool> CancelOrderAsync(string userId)
@@ -160,6 +160,8 @@ namespace SlackCoffee.Services
         public async Task<List<Order>> PickOrderAsync(int count, DateTime at)
         {
             await BeginTransactionAsync();
+
+            var orders = await _context.Orders.ToArrayAsync();
 
             var pickedCount = _context.Orders.Count(o => o.PickedAt > DateTime.MinValue);
             if (pickedCount > 0)
@@ -270,7 +272,7 @@ namespace SlackCoffee.Services
             return await _context.Users.FindAsync(userId);
         }
 
-        public async Task<User> CreateUserAsync(string userId, bool isManager)
+        public async Task<User> CreateUserAsync(string userId, string userName, bool isManager)
         {
             await BeginTransactionAsync();
 
@@ -278,7 +280,7 @@ namespace SlackCoffee.Services
             if (user != null)
                 throw new BadRequestException("이미 등록된 사용자입니다.");
 
-            user = new User { Id = userId, IsManager = isManager, Deposit = 0 };
+            user = new User { Id = userId, Name = userName, IsManager = isManager, Deposit = 0 };
             await _context.Users.AddAsync(user);
 
             return user;
@@ -293,6 +295,19 @@ namespace SlackCoffee.Services
                 throw new UserNotFoundException();
 
             user.IsManager = isManager;
+            _context.Users.Update(user);
+
+            return user;
+        }
+        public async Task<User> UpdateUserNameAsync(string userId, string name)
+        {
+            await BeginTransactionAsync();
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                throw new UserNotFoundException();
+
+            user.Name = name;
             _context.Users.Update(user);
 
             return user;
