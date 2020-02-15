@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
+using SlackCoffee.SlackAuthentication;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,6 +51,8 @@ namespace SlackCoffee.Utils
         [FormKey("enterprise_id")]
         public string EnterpriseId { get; private set; }
 
+        public readonly SlackWorkspace Workspace;
+
         private static Dictionary<string, PropertyInfo> properties;
 
         private static Dictionary<string, PropertyInfo> GetProperties()
@@ -69,11 +72,12 @@ namespace SlackCoffee.Utils
             return properties;
         }
 
-        public SlackRequest(IFormCollection form)
+        public SlackRequest(HttpContext context, SlackConfig config)
         {
+            Workspace = config.Workspaces.First(w => w.Name == context.SlackWorkspaceName());
             foreach (var item in GetProperties())
             {
-                if (!form.TryGetValue(item.Key, out var values) || values.Count <= 0)
+                if (!context.Request.Form.TryGetValue(item.Key, out var values) || values.Count <= 0)
                     continue;
                 item.Value.SetValue(this, values[0]);
             }

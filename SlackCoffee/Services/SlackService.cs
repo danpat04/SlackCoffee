@@ -13,7 +13,7 @@ namespace SlackCoffee.Services
 
     public interface ISlackService
     {
-        Task<Channel> GetChannelAsync(string workspaceName, string channelName);
+        Task<Channel[]> GetChannelsAsync(string workspaceName);
 
         Task<Member[]> GetMembersAsync(string workspaceName);
 
@@ -43,13 +43,13 @@ namespace SlackCoffee.Services
             return client;
         }
 
-        public async Task<Channel> GetChannelAsync(string workspaceName, string channelName)
+        public async Task<Channel[]> GetChannelsAsync(string workspaceName)
         {
             HttpClient client = CreateClient(workspaceName);
             var request = new ConversationsListRequest();
             var response = await request.SendAsync(client);
 
-            return response.Channels.Where(c => c.Name == channelName).FirstOrDefault();
+            return response.Channels;
         }
 
         public async Task<Member[]> GetMembersAsync(string workspaceName)

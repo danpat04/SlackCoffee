@@ -15,6 +15,7 @@ namespace SlackCoffee.SlackAuthentication
 {
     public class SlackAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {
+        public const string WorkspaceClaimType = "SlackWorkspace";
         private const string SlackVerificationVersion = "v0";
         private readonly SlackConfig _slackConfig;
 
@@ -82,7 +83,7 @@ namespace SlackCoffee.SlackAuthentication
                 return AuthenticateResult.Fail("Signature check missed");
 
             var claims = new[] {
-                new Claim("SlackWorkspace", workspace)
+                new Claim(WorkspaceClaimType, workspace)
             };
 
             var identity = new ClaimsIdentity(claims, Scheme.Name);
