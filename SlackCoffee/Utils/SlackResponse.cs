@@ -18,6 +18,11 @@ namespace SlackCoffee.Utils
             _request = request;
         }
 
+        public void Empty()
+        {
+            _messages.Clear();
+        }
+
         public SlackResponse InChannel(string text, string channelName = null)
         {
             string channelId;

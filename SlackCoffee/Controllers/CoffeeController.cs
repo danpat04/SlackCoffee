@@ -71,6 +71,19 @@ namespace SlackCoffee.Controllers
             var request = new SlackRequest(HttpContext, await _slackService.GetWorkspaceAsync(workspaceName));
             var response = new SlackResponse(request);
 
+            // 기다리지 않는다.
+            ExecuteCommand(request, response);
+            return Ok();
+        }
+
+        private async Task ExecuteCommand(SlackRequest request, SlackResponse response)
+        {
+
+            var splitted = request.Text.ToString().Trim().Split(' ', 2);
+
+            var command = splitted[0];
+            var option = splitted.Length > 1 ? splitted[1] : "";
+
             using var coffee = new CoffeeService(_coffeeContext);
 
             var user = await coffee.FindUserAsync(request.UserId);
@@ -87,24 +100,22 @@ namespace SlackCoffee.Controllers
                 await coffee.SaveAsync();
             }
 
-            var splitted = request.Text.ToString().Trim().Split(' ', 2);
-
-            var command = splitted[0];
-            var option = splitted.Length > 1 ? splitted[1] : "";
-
             try
             {
                 await commands.HandleCommandAsync(coffee, user, command, option, response, _logger);
+                await coffee.SaveAsync();
             }
             catch (BadRequestException e)
             {
-                return Ok(e.ResponseMsg);
+                response.Empty();
+                response.Ephemeral(e.ResponseMsg);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Error occured during handling command: {command}");
             }
 
-            await coffee.SaveAsync();
             await response.SendAsync(_slackService);
-
-            return Ok();
         }
     }
 }
