@@ -13,12 +13,19 @@ namespace SlackCoffee.Controllers.CoffeeCommands
     {
         public static StringBuilder AppendOrders(this StringBuilder sb, List<Order> orders)
         {
-            var pickedList = orders.Count(o => o.IsPicked) > 0;
-            foreach (var order in orders.OrderByDescending(o => o.PickedAt))
+            var picked = false;
+            foreach (var order in orders.Where(o => o.IsPicked).OrderBy(o => o.MenuId))
             {
-                var icon = pickedList ? (order.IsPicked ? ":_v:" : ":_x:") : "";
-                sb.AppendLine($"{icon}{SlackTools.UserIdToString(order.UserId)}: {order.MenuId} {order.Options} ({order.OrderedAt.ToString("h시 m분")}에 주문)");
+                 sb.AppendLine($":_v:{SlackTools.UserIdToString(order.UserId)}: {order.MenuId} {order.Options} ({order.OrderedAt.ToString("h시 m분")}에 주문)");
+                picked = true;
             }
+
+            var icon = picked ? ":_x:" : "";
+            foreach (var order in orders.Where(o => !o.IsPicked).OrderBy(o => o.OrderedAt))
+            {
+                 sb.AppendLine($"{icon}{SlackTools.UserIdToString(order.UserId)}: {order.MenuId} {order.Options} ({order.OrderedAt.ToString("h시 m분")}에 주문)");
+            }
+
             return sb;
         }
     }
