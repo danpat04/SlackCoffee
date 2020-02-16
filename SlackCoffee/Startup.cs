@@ -32,8 +32,6 @@ namespace SlackCoffee
         {
             services.AddControllers();
 
-            services.AddDbContext<CoffeeContext>();
-
             services.AddSlackAuthorization();
 
             services.Configure<SlackConfig>(Configuration.GetSection("Slack"));

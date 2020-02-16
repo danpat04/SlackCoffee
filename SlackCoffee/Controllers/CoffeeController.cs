@@ -20,17 +20,13 @@ namespace SlackCoffee.Controllers
     public class CoffeeController : ControllerBase
     {
         private readonly ISlackService _slackService;
-        private readonly CoffeeContext _coffeeContext;
-        private readonly SlackConfig _config;
         private readonly ILogger _logger;
 
         private static CoffeeCommandHandlers commands = new CoffeeCommandHandlers();
 
-        public CoffeeController(ISlackService slackService, CoffeeContext context, IOptions<SlackConfig> config, ILogger<CoffeeController> logger)
+        public CoffeeController(ISlackService slackService, ILogger<CoffeeController> logger)
         {
             _slackService = slackService;
-            _coffeeContext = context;
-            _config = config.Value;
             _logger = logger;
         }
 
@@ -72,11 +68,23 @@ namespace SlackCoffee.Controllers
             var response = new SlackResponse(request);
 
             // 기다리지 않는다.
-            Task.Run(async () => await ExecuteCommand(request, response));
+            Task.Run(() => ExecuteCommand(request, response));
             return Ok();
         }
 
-        private async Task ExecuteCommand(SlackRequest request, SlackResponse response)
+        private async void ExecuteCommand(SlackRequest request, SlackResponse response)
+        {
+            try
+            {
+                await ExecuteCommandAsync(request, response);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Error occured while handling {request}");
+            }
+        }
+
+        private async Task ExecuteCommandAsync(SlackRequest request, SlackResponse response)
         {
 
             var splitted = request.Text.ToString().Trim().Split(' ', 2);
@@ -84,7 +92,8 @@ namespace SlackCoffee.Controllers
             var command = splitted[0];
             var option = splitted.Length > 1 ? splitted[1] : "";
 
-            using var coffee = new CoffeeService(_coffeeContext);
+            using var context = new CoffeeContext();
+            using var coffee = new CoffeeService(context);
 
             var user = await coffee.FindUserAsync(request.UserId);
             if (user == null)
