@@ -72,7 +72,7 @@ namespace SlackCoffee.Controllers
             var response = new SlackResponse(request);
 
             // 기다리지 않는다.
-            ExecuteCommand(request, response);
+            Task.Run(async () => await ExecuteCommand(request, response));
             return Ok();
         }
 
