@@ -37,8 +37,6 @@ namespace SlackCoffee.Utils
 
     public class CommandHandlers<T, TCommand> where TCommand : Command
     {
-        public delegate Task<SlackResponse> CommandHandler(string text);
-
         private readonly Dictionary<string, KeyValuePair<TCommand, MethodInfo>> handlers =
             new Dictionary<string, KeyValuePair<TCommand, MethodInfo>>();
 

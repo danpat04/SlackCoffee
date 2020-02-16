@@ -31,7 +31,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
         }
 
         [CoffeeCommand("메뉴추가", "[이름], [설명], [가격(원)], [순서(숫자)]", true)]
-        public async Task<SlackResponse> AddMenu(CoffeeService coffee, User user, string text)
+        public async Task AddMenu(CoffeeService coffee, User user, string text, SlackResponse response)
         {
             var menu = UnpackMenu(text);
             if (menu == null)
@@ -39,11 +39,11 @@ namespace SlackCoffee.Controllers.CoffeeCommands
 
             await coffee.AddMenuAsync(menu);
 
-            return Ok($"{menu.Id}를 {menu.Price}원으로 추가하였습니다.");
+            response.Ephemeral($"{menu.Id}를 {menu.Price}원으로 추가하였습니다.");
         }
 
         [CoffeeCommand("메뉴수정", "[이름], [설명], [가격(원)], [순서(숫자)]", true)]
-        public async Task<SlackResponse> ChangeMenu(CoffeeService coffee, User user, string text)
+        public async Task ChangeMenu(CoffeeService coffee, User user, string text, SlackResponse response)
         {
             var menu = UnpackMenu(text);
             if (menu == null)
@@ -51,11 +51,11 @@ namespace SlackCoffee.Controllers.CoffeeCommands
 
             await coffee.ChangeMenuAsync(menu);
 
-            return Ok($"{menu.Id}를 {menu.Price}원으로 수정하였습니다.");
+            response.Ephemeral($"{menu.Id}를 {menu.Price}원으로 수정하였습니다.");
         }
 
         [CoffeeCommand("메뉴활성화", "[이름] [0: 비활성화/ 1: 활성화]", true)]
-        public async Task<SlackResponse> EnableMenu(CoffeeService coffee, User user, string text)
+        public async Task EnableMenu(CoffeeService coffee, User user, string text, SlackResponse response)
         {
             var splitted = text.Split(' ').Select(s => s.Trim()).ToArray();
             if (splitted.Length != 2 || !int.TryParse(splitted[1], out var enabledInt))
@@ -64,11 +64,11 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             var enabled = enabledInt > 0;
             await coffee.EnableMenuAsync(splitted[0], enabled);
 
-            return Ok($"{splitted[0]}을 {(enabled ? "활성화" : "비활성화")} 시켰습니다.");
+            response.Ephemeral($"{splitted[0]}을 {(enabled ? "활성화" : "비활성화")} 시켰습니다.");
         }
 
         [CoffeeCommand("메뉴", "메뉴 목록을 표시합니다", false)]
-        public async Task<SlackResponse> GetMenu(CoffeeService coffee, User user, string text)
+        public async Task GetMenu(CoffeeService coffee, User user, string text, SlackResponse response)
         {
             var menus = await coffee.GetMenusAsync();
             var enabledMenus = menus.Where(m => m.Enabled);
@@ -89,7 +89,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
                 }
             }
 
-            return Ok(sb.ToString());
+            response.Ephemeral(sb.ToString());
         }
     }
 }

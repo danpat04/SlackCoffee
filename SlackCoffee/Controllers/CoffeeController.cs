@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -53,8 +54,24 @@ namespace SlackCoffee.Controllers
         [HttpPost]
         public async Task<IActionResult> Do()
         {
+            try
+            {
+                return await DoAsync();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error occured during handling slash command");
+                throw;
+            }
+        }
+
+        private async Task<IActionResult> DoAsync()
+        {
+            var workspaceName = HttpContext.SlackWorkspaceName();
+            var request = new SlackRequest(HttpContext, await _slackService.GetWorkspaceAsync(workspaceName));
+            var response = new SlackResponse(request);
+
             using var coffee = new CoffeeService(_coffeeContext);
-            var request = new SlackRequest(HttpContext, _config);
 
             var user = await coffee.FindUserAsync(request.UserId);
             if (user == null)
@@ -75,10 +92,9 @@ namespace SlackCoffee.Controllers
             var command = splitted[0];
             var option = splitted.Length > 1 ? splitted[1] : "";
 
-            SlackResponse result;
             try
             {
-                result = await commands.HandleCommandAsync(coffee, user, command, option, _logger);
+                await commands.HandleCommandAsync(coffee, user, command, option, response, _logger);
             }
             catch (BadRequestException e)
             {
@@ -86,13 +102,9 @@ namespace SlackCoffee.Controllers
             }
 
             await coffee.SaveAsync();
+            await response.SendAsync(_slackService);
 
-            if (result is MultipleResponse r && r.IsMultiple)
-            {
-                // 일부러 기다리지 않는다.
-                r.SendChannelResponse(_slackService, request);
-            }
-            return Ok(result);
+            return Ok();
         }
     }
 }

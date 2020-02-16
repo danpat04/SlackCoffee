@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -23,10 +24,15 @@ namespace SlackCoffee.Utils.SlackApi
             return await JsonSerializer.DeserializeAsync<TResponse>(responseStream);
         }
 
-        public void AddJsonContent<T>(T content)
+        public void SetJsonContent<T>(T content)
         {
             var contentData = JsonSerializer.Serialize<T>(content);
             Content = new StringContent(contentData, Encoding.UTF8, "application/json");
+        }
+
+        public void SetUrlEncodedContent(Dictionary<string, string> keyValues)
+        {
+            Content = new FormUrlEncodedContent(keyValues);
         }
     }
 

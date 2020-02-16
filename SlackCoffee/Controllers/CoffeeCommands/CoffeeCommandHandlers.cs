@@ -43,19 +43,14 @@ namespace SlackCoffee.Controllers.CoffeeCommands
 
     public interface ICoffeeCommandHandlers
     {
-        Task<SlackResponse> HandleCommandAsync(CoffeeService coffee, User user, string commandId, string options, ILogger logger = null);
+        Task HandleCommandAsync(CoffeeService coffee, User user, string commandId, string options, SlackResponse response, ILogger logger = null);
     }
 
     public partial class CoffeeCommandHandlers : ICoffeeCommandHandlers
     {
         private static CommandHandlers<CoffeeCommandHandlers, CoffeeCommand> handlers = new  CommandHandlers<CoffeeCommandHandlers, CoffeeCommand>();
 
-        private MultipleResponse Ok(string text = null, bool inChannel = false)
-        {
-            return new MultipleResponse(text, inChannel);
-        }
-
-        public async Task<SlackResponse> HandleCommandAsync(CoffeeService coffee, User user, string commandId, string options, ILogger logger = null)
+        public async Task HandleCommandAsync(CoffeeService coffee, User user, string commandId, string options, SlackResponse response, ILogger logger = null)
         {
             if (!handlers.TryGetHandler(commandId, out var handlerInfo))
                 throw new CommandNotFoundException();
@@ -66,11 +61,11 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             if (command.ForManager && !user.IsManager)
                 throw new OnlyForManagerException();
 
-            return await (Task<SlackResponse>)methodInfo.Invoke(this, new object[] { coffee, user, options });
+            await (Task)methodInfo.Invoke(this, new object[] { coffee, user, options, response });
         }
 
         [CoffeeCommand("도움", "명령어 목록을 표시합니다", false)]
-        public async Task<SlackResponse> GetHelp(CoffeeService coffee, User user, string text)
+        public async Task GetHelp(CoffeeService coffee, User user, string text, SlackResponse response)
         {
             var sb = new StringBuilder();
             foreach ((var command, var name, var description) in handlers.GetDescriptions())
@@ -80,7 +75,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
 
                 sb.AppendLine($"*{name}* : {description}");
             }
-            return Ok(sb.ToString());
+            response.Ephemeral(sb.ToString());
         }
     }
 }

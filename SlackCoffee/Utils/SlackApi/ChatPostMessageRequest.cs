@@ -21,7 +21,7 @@ namespace SlackCoffee.Utils.SlackApi
         public string Timestamp { get; set; }
     }
 
-    public class ChatPostMessage: SlackApiRequest<ChatPostMessage.Response>
+    public class ChatPostMessageRequest: SlackApiRequest<ChatPostMessageRequest.Response>
     {
         public class Response : SlackApiResponse
         {
@@ -44,10 +44,10 @@ namespace SlackCoffee.Utils.SlackApi
             public string Text { get; set; }
         }
 
-        public ChatPostMessage(string channelId, string text)
+        public ChatPostMessageRequest(string channelId, string text)
             : base(HttpMethod.Post, "api/chat.postMessage")
         {
-            AddJsonContent(new ChatContent { Channel = channelId, Text = text });
+            SetJsonContent(new ChatContent { Channel = channelId, Text = text });
         }
     }
 }
