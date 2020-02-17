@@ -11,19 +11,19 @@ namespace SlackCoffee.Controllers.CoffeeCommands
 {
     public static class StringBuilderExtensions
     {
-        public static StringBuilder AppendOrders(this StringBuilder sb, List<Order> orders)
+        public static StringBuilder AppendOrders(this StringBuilder sb, List<Order> orders, Dictionary<string, User> users)
         {
             var picked = false;
             foreach (var order in orders.Where(o => o.IsPicked).OrderBy(o => o.MenuId))
             {
-                 sb.AppendLine($":_v:{SlackTools.UserIdToString(order.UserId)}: {order.MenuId} {order.Options} ({order.OrderedAt.ToString("h시 m분")}에 주문)");
+                 sb.AppendLine($":_v:{users[order.UserId].Name}: {order.MenuId} {order.Options} ({order.OrderedAt.ToString("h시 m분")}에 주문)");
                 picked = true;
             }
 
             var icon = picked ? ":_x:" : "";
             foreach (var order in orders.Where(o => !o.IsPicked).OrderBy(o => o.OrderedAt))
             {
-                 sb.AppendLine($"{icon}{SlackTools.UserIdToString(order.UserId)}: {order.MenuId} {order.Options} ({order.OrderedAt.ToString("h시 m분")}에 주문)");
+                 sb.AppendLine($"{icon}{users[order.UserId].Name}: {order.MenuId} {order.Options} ({order.OrderedAt.ToString("h시 m분")}에 주문)");
             }
 
             return sb;
@@ -71,7 +71,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             else
                 sb.AppendLine($"총 {orders.Count}명");
 
-            sb.AppendOrders(orders);
+            sb.AppendOrders(orders, await coffee.GetUsersAsync(orders.Select(o => o.UserId)));
 
             response.Ephemeral(sb.ToString());
         }
@@ -91,7 +91,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
 
             var picked = orders.Where(o => o.PickedAt > DateTime.MinValue).ToList();
             var sb = new StringBuilder($"<당첨자 명단> {orders.Count}명 중에 {picked.Count}명").AppendLine();
-            sb.AppendOrders(picked);
+            sb.AppendOrders(picked, await coffee.GetUsersAsync(picked.Select(o => o.UserId)));
 
             var responseText = sb.ToString();
 
@@ -118,7 +118,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             var orders = await coffee.GetOrdersAsync(at);
             var candidatesCount = picked.Count + orders.Count(o => o.PickedAt <= DateTime.MinValue);
             var sb = new StringBuilder($"<추가 당첨자 명단> {candidatesCount}명 중에 {picked.Count}명").AppendLine();
-            sb.AppendOrders(picked);
+            sb.AppendOrders(picked, await coffee.GetUsersAsync(picked.Select(o => o.UserId)));
 
             var responseText = sb.ToString();
 

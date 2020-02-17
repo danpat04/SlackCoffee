@@ -286,6 +286,12 @@ namespace SlackCoffee.Services
             return user;
         }
 
+        public async Task<Dictionary<string, User>> GetUsersAsync(IEnumerable<string> userIds)
+        {
+            var ids = userIds.ToHashSet();
+            return await _context.Users.Where(u => ids.Contains(u.Id)).ToDictionaryAsync(u => u.Id);
+        }
+
         public async Task<User> UpdateUserAsync(string userId, bool isManager)
         {
             await BeginTransactionAsync();
