@@ -15,21 +15,20 @@ namespace SlackCoffee.Controllers.CoffeeCommands
         {
             var users = await coffee.GetUsersAsync(orders.Select(o => o.UserId));
 
-            var picked = false;
-            foreach (var order in orders.Where(o => o.IsPicked).OrderBy(o => o.MenuId))
+            var pickedOrders = orders.Where(o => o.IsPicked).OrderBy(o => o.MenuId).ToList();
+            foreach (var order in pickedOrders)
             {
                  sb.AppendLine($":_v:{users[order.UserId].Name}: {order.MenuId} {order.Options} ({order.OrderedAt.ToString("h시 m분")}에 주문)");
-                picked = true;
             }
 
-            var icon = picked ? ":_x:" : "";
+            var icon = pickedOrders.Count > 0 ? ":_x:" : "";
             foreach (var order in orders.Where(o => !o.IsPicked).OrderBy(o => o.OrderedAt))
             {
                  sb.AppendLine($"{icon}{users[order.UserId].Name}: {order.MenuId} {order.Options} ({order.OrderedAt.ToString("h시 m분")}에 주문)");
             }
 
             var menus = (await coffee.GetMenusAsync()).ToDictionary(m => m.Id);
-            var menuCounts = orders.GroupBy(o => o.MenuId).Select(grouping => (grouping.Key, grouping.Count()));
+            var menuCounts = pickedOrders.GroupBy(o => o.MenuId).Select(grouping => (grouping.Key, grouping.Count()));
             var steamCount = menuCounts.Select((info) => menus[info.Key].SteamMilkNeeded ? info.Item2 : 0).Sum();
 
             if (steamCount > 0)
