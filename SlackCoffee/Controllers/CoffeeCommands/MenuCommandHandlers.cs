@@ -73,7 +73,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             var enabled = enabledInt > 0;
             await coffee.EnableMenuAsync(splitted[0], enabled);
 
-            response.Ephemeral($"{splitted[0]}을 {(enabled ? "활성화" : "비활성화")} 시켰습니다.");
+            response.Ephemeral($"{splitted[0]}를 {(enabled ? "활성화" : "비활성화")} 시켰습니다.");
         }
 
         [CoffeeCommand("메뉴", "메뉴 목록을 표시합니다", false)]

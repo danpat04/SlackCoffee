@@ -46,7 +46,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             var deposit = await coffee.GetDepositAsync(user.Id);
             response
                 .Ephemeral($"{order.Price}원, 현재 잔액 {deposit}원")
-                .InChannel($"{user.Name} 님이 {order.MenuId}{(canceled ? "로 변경" : "을 주문")} 하였습니다.");
+                .InChannel($"{user.Name} 님이 {order.MenuId}{(canceled ? "로 변경" : "를 주문")} 하였습니다.");
         }
 
         [CoffeeCommand("주문취소", "주문한 커피를 취소합니다", false)]
