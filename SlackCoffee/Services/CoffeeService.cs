@@ -87,7 +87,7 @@ namespace SlackCoffee.Services
                 string menuName, options;
                 if (index > 0)
                 {
-                    menuName = text.Substring(0, index + 1);
+                    menuName = text.Substring(0, index);
                     options = text.Substring(index + 1);
                 }
                 else
