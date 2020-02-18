@@ -11,8 +11,8 @@ namespace SlackCoffee.Controllers.CoffeeCommands
     {
         private Menu UnpackMenu(string text)
         {
-            var splitted = text.Split(',', 4).Select(t => t.Trim()).ToArray();
-            if (splitted.Length != 4)
+            var splitted = text.Split(',').Select(t => t.Trim()).ToArray();
+            if (splitted.Length < 4)
                 return null;
 
             if (!int.TryParse(splitted[2], out var price) ||
@@ -21,16 +21,25 @@ namespace SlackCoffee.Controllers.CoffeeCommands
                 return null;
             }
 
+            var steamMilkNeeded = false;
+            if (splitted.Length > 4)
+            {
+                if (!int.TryParse(splitted[4], out var steamMilkInt))
+                    return null;
+                steamMilkNeeded = steamMilkInt > 0;
+            }
+
             return new Menu {
                 Id = splitted[0],
                 Description = splitted[1],
                 Price = price,
                 Order = order,
-                Enabled = true
+                Enabled = true,
+                SteamMilkNeeded = steamMilkNeeded
             };
         }
 
-        [CoffeeCommand("메뉴추가", "[이름], [설명], [가격(원)], [순서(숫자)]", true)]
+        [CoffeeCommand("메뉴추가", "[이름], [설명], [가격(원)], [순서(숫자)] [스팀밀크 필요(옵션)]", true)]
         public async Task AddMenu(CoffeeService coffee, User user, string text, SlackResponse response)
         {
             var menu = UnpackMenu(text);
@@ -42,7 +51,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             response.Ephemeral($"{menu.Id}를 {menu.Price}원으로 추가하였습니다.");
         }
 
-        [CoffeeCommand("메뉴수정", "[이름], [설명], [가격(원)], [순서(숫자)]", true)]
+        [CoffeeCommand("메뉴수정", "[이름], [설명], [가격(원)], [순서(숫자)] [스팀밀크 필요(옵션)]", true)]
         public async Task ChangeMenu(CoffeeService coffee, User user, string text, SlackResponse response)
         {
             var menu = UnpackMenu(text);

@@ -19,11 +19,14 @@ namespace SlackCoffee.Models
 
         public bool Enabled { get; set; }
 
+        public bool SteamMilkNeeded { get; set; }
+
         public void Update(Menu update)
         {
             Description = update.Description;
             Price = update.Price;
             Order = update.Order;
+            SteamMilkNeeded = update.SteamMilkNeeded;
         }
     }
 }
