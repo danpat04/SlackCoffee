@@ -55,7 +55,7 @@ namespace SlackCoffee.Services
             order.Price = price + (Math.Min(order.ShotCount - 1, 0) * 500);
         }
 
-        public async Task<(Order, bool)> MakeOrderAsync(string userId, string text, DateTime at)
+        public async Task<Order> MakeOrderAsync(string userId, string text, DateTime at)
         {
             await BeginTransactionAsync();
 
@@ -106,18 +106,17 @@ namespace SlackCoffee.Services
                 await SetPriceAsync(order);
             }
 
-            var canceled = await CancelOrderAsync(userId);
-
             _context.Orders.Add(order);
-            return (order, canceled);
+            return order;
         }
 
-        public async Task<bool> CancelOrderAsync(string userId)
+        public async Task<bool> CancelOrderAsync(string userId, DateTime at, DateTime after)
         {
             await BeginTransactionAsync();
 
             var prevOrders = await _context.Orders
-                .Where(o => o.UserId == userId).ToArrayAsync();
+                .Where(o => o.UserId == userId && o.OrderedAt <= at && o.OrderedAt >= after)
+                .ToArrayAsync();
 
             if (prevOrders.Length > 0)
             {
@@ -127,10 +126,14 @@ namespace SlackCoffee.Services
 
             return false;
         }
+        public async Task<List<Order>> GetReservedOrdersAsync(DateTime at)
+        {
+            return await _context.Orders.Where(o => o.OrderedAt >= at).ToListAsync();
+        }
 
         public async Task<List<Order>> GetOrdersAsync(DateTime at)
         {
-            return await _context.Orders.Where(o => o.OrderedAt > (at - OrderTolerance)).ToListAsync();
+            return await _context.Orders.Where(o => o.OrderedAt > (at - OrderTolerance) && o.OrderedAt < at).ToListAsync();
         }
 
         public async Task<List<Order>> PickMoreOrderAsync(int count, DateTime at)
@@ -138,7 +141,7 @@ namespace SlackCoffee.Services
             await BeginTransactionAsync();
 
             var candidates = await _context.Orders
-                .Where(o => o.OrderedAt > (at - OrderTolerance))
+                .Where(o => o.OrderedAt > (at - OrderTolerance) && o.OrderedAt < at)
                 .Where(o => o.PickedAt <= DateTime.MinValue)
                 .ToListAsync();
 
@@ -173,12 +176,12 @@ namespace SlackCoffee.Services
                 .ToListAsync();
 
             var managers = await _context.Orders
-                .Where(o => o.OrderedAt > at - OrderTolerance)
+                .Where(o => o.OrderedAt > at - OrderTolerance && o.OrderedAt < at)
                 .Where(o => managerIds.Contains(o.UserId))
                 .ToListAsync();
 
             var candidates = await _context.Orders
-                .Where(o => o.OrderedAt > at - OrderTolerance)
+                .Where(o => o.OrderedAt > at - OrderTolerance && o.OrderedAt < at)
                 .Where(o => !managerIds.Contains(o.UserId))
                 .ToListAsync();
 
@@ -209,7 +212,12 @@ namespace SlackCoffee.Services
         {
             await BeginTransactionAsync();
 
-            var orders = await _context.Orders.ToListAsync();
+            var lastPickedAt = await _context.Orders
+                .OrderByDescending(o => o.PickedAt)
+                .Select(o => o.PickedAt)
+                .FirstOrDefaultAsync();
+
+            var orders = await _context.Orders.Where(o => o.OrderedAt <= lastPickedAt).ToListAsync();
             var pickedOrders = orders.Where(o => o.PickedAt > DateTime.MinValue).ToList();
 
             if (pickedOrders.Count <= 0)
