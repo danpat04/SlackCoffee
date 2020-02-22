@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using SlackCoffee.Models;
 using SlackCoffee.Services;
@@ -42,6 +43,55 @@ namespace SlackCoffee.Controllers.CoffeeCommands
 
             var subText = isManager ? "운영자로 지정 하였습니다." : "일반 사용자로 지정 하였습니다.";
             response.InChannel($"{user.Name} 님이 {SlackTools.StringToUserId(changedUser.Id)} 님을 {subText}");
+        }
+
+        [CoffeeCommand("충전내역", "[일 수]", false)]
+        public async Task GetHistory(CoffeeService coffee, User user, string text, SlackResponse response)
+        {
+            if (!int.TryParse(text, out int days))
+                days = 180;
+
+            StringBuilder sb = new StringBuilder();
+            var walletHistory = await coffee.GetFillHistories(user.Id, DateTime.Now, days);
+            foreach (var fill in walletHistory)
+                sb.AppendLine($"{fill.At.Month}월 {fill.At.Day}일 : *{fill.Amount}* 원");
+
+            response.Ephemeral(sb.ToString());
+        }
+
+        [CoffeeCommand("통계", "[일 수]", false)]
+        public async Task GetStatistic(CoffeeService coffee, User user, string text, SlackResponse response)
+        {
+            if (!int.TryParse(text, out int days))
+                days = 180;
+
+            var orders = await coffee.GetCompletedOrders(user.Id, DateTime.Now, days);
+
+            var totalCount = orders.Length;
+            var pickedCount = orders.Count(o => o.IsPicked);
+            var totalPaid = orders.Sum(o => o.IsPicked ? o.Price : 0);
+
+            var orderedMenus = orders
+                .GroupBy(o => o.MenuId)
+                .Select(g => (g.Key, g.Count()))
+                .OrderBy(i => i.Item2).Take(3).ToArray();
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"지난 *{days}* 일 동안").AppendLine();
+            sb.AppendLine($"주문한 잔 수:\t*{totalCount}*");
+            sb.AppendLine($"마신 잔 수:\t\t*{pickedCount}*, {pickedCount / (float)totalCount:P1}");
+            sb.AppendLine($"총 비용:\t\t\t *{totalPaid}* 원");
+            if (orderedMenus.Length > 0)
+            {
+                sb.AppendLine("주로 주문한 메뉴:");
+                for (var i = 0; i < orderedMenus.Length; i++)
+                {
+                    (var menuId, var count) = orderedMenus[i];
+                    sb.AppendLine($"  {i + 1}. *{menuId}*, {count / (float)totalCount:P1}");
+                }
+            }
+
+            response.Ephemeral(sb.ToString());
         }
     }
 }

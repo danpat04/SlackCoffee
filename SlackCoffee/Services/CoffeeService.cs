@@ -358,5 +358,28 @@ namespace SlackCoffee.Services
         {
             return await _context.Menus.OrderBy(m => m.Order).ToArrayAsync();
         }
+
+        public async Task<CompletedOrder[]> GetCompletedOrders(string userId, DateTime at, int days)
+        {
+            // days 전 아침 9시 기준
+            DateTime since = at - new TimeSpan(days, 0, 0, 0);
+            since = new DateTime(since.Year, since.Month, since.Day, 9, 0, 0);
+
+            return await _context.CompletedOrders
+                .Where(o => o.UserId == userId && o.OrderedAt > since)
+                .ToArrayAsync();
+        }
+
+        public async Task<WalletHistory[]> GetFillHistories(string userId, DateTime at, int days)
+        {
+            // days 전 아침 9시 기준
+            DateTime since = at - new TimeSpan(days, 0, 0, 0);
+            since = new DateTime(since.Year, since.Month, since.Day, 9, 0, 0);
+
+            return await _context.WalletHistory
+                .Where(h => h.UserId == userId && h.At > since)
+                .OrderBy(o => o.At)
+                .ToArrayAsync();
+        }
     }
 }
