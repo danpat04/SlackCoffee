@@ -20,6 +20,25 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             response.Ephemeral($"현재 잔액은 {u.Deposit}원 입니다.");
         }
 
+        // [CoffeeCommand("대리적립", "", true)]
+        public async Task FillOtherWallet(CoffeeService coffee, User requestUser, string text, SlackResponse response)
+        {
+            var splitted = text.Split(' ');
+            if (splitted.Length != 2 || !int.TryParse(splitted[1], out var amount))
+                throw new NotWellFormedException();
+
+            var userId = SlackTools.StringToUserId(splitted[0]);
+            var user = await coffee.FindUserAsync(userId);
+            if (user == null)
+            {
+                user = await coffee.CreateUserAsync(userId, null, false);
+                await coffee.SaveAsync();
+            }
+
+            var u = await coffee.FillWalletAsync(userId, amount, DateTime.Now);
+            response.Ephemeral($"현재 잔액은 {u.Deposit}원 입니다.");
+        }
+
         [CoffeeCommand("잔액", "현재 잔액을 확인합니다", false)]
         public async Task GetDeposit(CoffeeService coffee, User user, string text, SlackResponse response)
         {
