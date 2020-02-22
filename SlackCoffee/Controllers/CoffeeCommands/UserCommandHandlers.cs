@@ -93,7 +93,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             var orderedMenus = orders
                 .GroupBy(o => o.MenuId)
                 .Select(g => (g.Key, g.Count()))
-                .OrderBy(i => i.Item2).Take(3).ToArray();
+                .OrderByDescending(i => i.Item2).Take(3).ToArray();
 
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"지난 *{days}* 일 동안").AppendLine();
