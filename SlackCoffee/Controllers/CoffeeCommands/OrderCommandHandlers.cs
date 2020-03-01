@@ -65,7 +65,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             var order = await coffee.MakeOrderAsync(user.Id, text, DateTime.Now, canceled);
             var deposit = await coffee.GetDepositAsync(user.Id);
             response.Ephemeral($"{order.Price}원, 현재 잔액 {deposit}원");
-            if (canceled.IsPicked && order.Price != canceled.Price)
+            if (canceled != null && canceled.IsPicked && order.Price != canceled.Price)
                 response.Ephemeral($"추첨된 메뉴와 가격이 다릅니다. 추출러에게 바뀐 메뉴를 확실히 알려주세요.");
             response.InChannel($"{user.Name} 님이 {order.MenuId}{(canceled != null ? "로 변경" : "를 주문")} 하였습니다.");
         }
