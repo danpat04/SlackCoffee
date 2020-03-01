@@ -64,11 +64,12 @@ namespace SlackCoffee.Controllers.CoffeeCommands
         public async Task MakeOrder(CoffeeService coffee, User user, string text, SlackResponse response)
         {
             var canceled = await coffee.CancelOrderAsync(user.Id, DateTime.Now, DateTime.MinValue);
-            var order = await coffee.MakeOrderAsync(user.Id, text, DateTime.Now);
+            var order = await coffee.MakeOrderAsync(user.Id, text, DateTime.Now, canceled);
             var deposit = await coffee.GetDepositAsync(user.Id);
-            response
-                .Ephemeral($"{order.Price}원, 현재 잔액 {deposit}원")
-                .InChannel($"{user.Name} 님이 {order.MenuId}{(canceled ? "로 변경" : "를 주문")} 하였습니다.");
+            response.Ephemeral($"{order.Price}원, 현재 잔액 {deposit}원");
+            if (canceled.IsPicked && order.Price != canceled.Price)
+                response.Ephemeral($"추첨된 메뉴와 가격이 다릅니다. 추출러에게 바뀐 메뉴를 확실히 알려주세요.");
+            response.InChannel($"{user.Name} 님이 {order.MenuId}{(canceled != null ? "로 변경" : "를 주문")} 하였습니다.");
         }
 
         [CoffeeCommand("오후예약", "커피를 주문합니다 (사용법: [메뉴] [옵션])", false)]
@@ -82,15 +83,15 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             var deposit = await coffee.GetDepositAsync(user.Id);
             response
                 .Ephemeral($"{order.Price}원, 현재 잔액 {deposit}원")
-                .InChannel($"{user.Name} 님이 오후 커피를 {order.MenuId}로 {(canceled ? "변경" : "예약")} 하였습니다.");
+                .InChannel($"{user.Name} 님이 오후 커피를 {order.MenuId}로 {(canceled != null ? "변경" : "예약")} 하였습니다.");
         }
 
         [CoffeeCommand("주문취소", "주문한 커피를 취소합니다", false)]
         public async Task CancelOrder(CoffeeService coffee, User user, string text, SlackResponse response)
         {
             var canceled = await coffee.CancelOrderAsync(user.Id, DateTime.Now, DateTime.MinValue);
-            response.Ephemeral(canceled ? "취소하였습니다." : "예약이 없습니다.");
-            if (canceled)
+            response.Ephemeral(canceled != null ? "취소하였습니다." : "예약이 없습니다.");
+            if (canceled != null)
                 response.InChannel($"{user.Name} 님이 주문을 취소하였습니다.");
         }
 
@@ -101,8 +102,8 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             if (DateTime.Now > at)
                 throw new BadRequestException("오전에만 사용 가능한 메뉴입니다.");
             var canceled = await coffee.CancelOrderAsync(user.Id, at, at);
-            response.Ephemeral(canceled ? "취소하였습니다." : "예약이 없습니다.");
-            if (canceled)
+            response.Ephemeral(canceled != null ? "취소하였습니다." : "예약이 없습니다.");
+            if (canceled != null)
                 response.InChannel($"{user.Name} 님이 오후 커피를 취소하였습니다.");
         }
 

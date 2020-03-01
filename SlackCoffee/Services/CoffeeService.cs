@@ -55,7 +55,7 @@ namespace SlackCoffee.Services
             order.Price = price + (Math.Min(order.ShotCount - 1, 0) * 500);
         }
 
-        public async Task<Order> MakeOrderAsync(string userId, string text, DateTime at)
+        public async Task<Order> MakeOrderAsync(string userId, string text, DateTime at, Order prevOrder = null)
         {
             await BeginTransactionAsync();
 
@@ -106,11 +106,14 @@ namespace SlackCoffee.Services
                 await SetPriceAsync(order);
             }
 
+            if (prevOrder != null)
+                order.PickedAt = prevOrder.PickedAt;
+
             _context.Orders.Add(order);
             return order;
         }
 
-        public async Task<bool> CancelOrderAsync(string userId, DateTime at, DateTime after)
+        public async Task<Order> CancelOrderAsync(string userId, DateTime at, DateTime after)
         {
             await BeginTransactionAsync();
 
@@ -121,10 +124,10 @@ namespace SlackCoffee.Services
             if (prevOrders.Length > 0)
             {
                 _context.Orders.RemoveRange(prevOrders);
-                return true;
+                return prevOrders.FirstOrDefault(o => o.OrderedAt > (at - OrderTolerance));
             }
 
-            return false;
+            return null;
         }
         public async Task<List<Order>> GetReservedOrdersAsync(DateTime at)
         {
