@@ -30,10 +30,8 @@ namespace SlackCoffee.Controllers.CoffeeCommands
                 sb.AppendLine($"총 {orders.Count}명 중 {pickedCount}명 당첨");
                 var pickedOrders = orders
                     .Where(o => o.IsPicked)
-                    .OrderBy(o => o.MenuId);
-                var restOrders = orders
-                    .Where(o => !o.IsPicked)
-                    .OrderBy(o => o.OrderedAt);
+                    .OrderBy(o => o.MenuId)
+                    .ToArray();
 
                 await sb.AppendOrders(coffee, pickedOrders);
 
