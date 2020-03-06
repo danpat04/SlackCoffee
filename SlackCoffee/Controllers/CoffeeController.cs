@@ -4,12 +4,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection;
 using SlackCoffee.Controllers.CoffeeCommands;
 using SlackCoffee.Models;
 using SlackCoffee.Services;
 using SlackCoffee.SlackAuthentication;
 using SlackCoffee.Utils;
+using Microsoft.EntityFrameworkCore;
 
 namespace SlackCoffee.Controllers
 {
@@ -19,13 +20,15 @@ namespace SlackCoffee.Controllers
     [ApiController]
     public class CoffeeController : ControllerBase
     {
+        private readonly DbContextOptions<CoffeeContext> _dbContextOptions;
         private readonly ISlackService _slackService;
         private readonly ILogger _logger;
 
         private static CoffeeCommandHandlers commands = new CoffeeCommandHandlers();
 
-        public CoffeeController(ISlackService slackService, ILogger<CoffeeController> logger)
+        public CoffeeController(DbContextOptions<CoffeeContext> options, ISlackService slackService, ILogger<CoffeeController> logger)
         {
+            _dbContextOptions = options;
             _slackService = slackService;
             _logger = logger;
         }
@@ -68,15 +71,16 @@ namespace SlackCoffee.Controllers
             var response = new SlackResponse(request);
 
             // 기다리지 않는다.
-            Task.Run(() => ExecuteCommand(request, response));
+            Task.Run(() => ExecuteCommand(_dbContextOptions, request, response));
             return Ok();
         }
 
-        private async void ExecuteCommand(SlackRequest request, SlackResponse response)
+        private async void ExecuteCommand(DbContextOptions options, SlackRequest request, SlackResponse response)
         {
+            using var context = new CoffeeContext(options);
             try
             {
-                await ExecuteCommandAsync(request, response);
+                await ExecuteCommandAsync(context, request, response);
             }
             catch (Exception e)
             {
@@ -84,7 +88,7 @@ namespace SlackCoffee.Controllers
             }
         }
 
-        private async Task ExecuteCommandAsync(SlackRequest request, SlackResponse response)
+        private async Task ExecuteCommandAsync(CoffeeContext context, SlackRequest request, SlackResponse response)
         {
 
             var splitted = request.Text.ToString().Trim().Split(' ', 2);
@@ -92,7 +96,6 @@ namespace SlackCoffee.Controllers
             var command = splitted[0];
             var option = splitted.Length > 1 ? splitted[1] : "";
 
-            using var context = new CoffeeContext();
             using var coffee = new CoffeeService(context);
 
             var user = await coffee.FindUserAsync(request.UserId);

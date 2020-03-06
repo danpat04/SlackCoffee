@@ -10,9 +10,8 @@ namespace SlackCoffee.Models
         public DbSet<CompletedOrder> CompletedOrders { get; set; }
         public DbSet<Menu> Menus { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder options)
+        public CoffeeContext(DbContextOptions options) : base(options)
         {
-            options.UseSqlite("Data Source=coffee.db");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
