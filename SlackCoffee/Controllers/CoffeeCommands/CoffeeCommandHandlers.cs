@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using SlackBot;
 using SlackCoffee.Models;
 using SlackCoffee.Services;
 using SlackCoffee.Utils;

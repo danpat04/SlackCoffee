@@ -2,9 +2,9 @@
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SlackBot;
 using SlackCoffee.Models;
 using SlackCoffee.Services;
-using SlackCoffee.Utils;
 
 namespace SlackCoffee.Controllers.CoffeeCommands
 {
@@ -27,7 +27,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             if (splitted.Length != 2 || !int.TryParse(splitted[1], out var amount))
                 throw new NotWellFormedException();
 
-            var userId = SlackTools.StringToUserId(splitted[0]);
+            var userId = SlackBot.Utils.StringToUserId(splitted[0]);
             var user = await coffee.FindUserAsync(userId);
             if (user == null)
             {
@@ -53,7 +53,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             if (splitted.Length != 2 || !int.TryParse(splitted[1], out var isManagerInt))
                 throw new NotWellFormedException();
 
-            var userId = SlackTools.StringToUserId(splitted[0]);
+            var userId = SlackBot.Utils.StringToUserId(splitted[0]);
             if (userId == null)
                 throw new NotWellFormedException();
 
@@ -61,7 +61,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             var changedUser = await coffee.UpdateUserAsync(userId, isManager);
 
             var subText = isManager ? "운영자로 지정 하였습니다." : "일반 사용자로 지정 하였습니다.";
-            response.InChannel($"{user.Name} 님이 {SlackTools.StringToUserId(changedUser.Id)} 님을 {subText}");
+            response.InChannel($"{user.Name} 님이 {SlackBot.Utils.StringToUserId(changedUser.Id)} 님을 {subText}");
         }
 
         [CoffeeCommand("충전내역", "[일 수]", false)]

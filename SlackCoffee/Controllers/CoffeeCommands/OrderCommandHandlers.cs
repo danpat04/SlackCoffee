@@ -1,6 +1,6 @@
-﻿using SlackCoffee.Models;
+﻿using SlackBot;
+using SlackCoffee.Models;
 using SlackCoffee.Services;
-using SlackCoffee.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -205,7 +205,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             var sb = new StringBuilder();
             foreach (var o in orders)
             {
-                sb.Append(SlackTools.UserIdToString(o.UserId)).Append(' ');
+                sb.Append(SlackBot.Utils.UserIdToString(o.UserId)).Append(' ');
             }
             sb.Append("님 커피 가져가세요~");
             // TODO: 왓카페 채널에 완성 명단을 알리기

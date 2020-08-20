@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.29709.97
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SlackCoffee", "SlackCoffee\SlackCoffee.csproj", "{AB30F285-3E00-4819-B701-4B0BE47177AB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlackCoffee.Test", "SlackCoffee.Test\SlackCoffee.Test.csproj", "{50D4BCAE-03CF-4F68-8A6D-0831FA30348F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SlackCoffee.Test", "SlackCoffee.Test\SlackCoffee.Test.csproj", "{50D4BCAE-03CF-4F68-8A6D-0831FA30348F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SlackBot", "SlackBot\SlackBot\SlackBot\SlackBot.csproj", "{C2ADDBEC-04E6-4DCB-BE10-6CB8F8A6E125}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{50D4BCAE-03CF-4F68-8A6D-0831FA30348F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{50D4BCAE-03CF-4F68-8A6D-0831FA30348F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{50D4BCAE-03CF-4F68-8A6D-0831FA30348F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2ADDBEC-04E6-4DCB-BE10-6CB8F8A6E125}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2ADDBEC-04E6-4DCB-BE10-6CB8F8A6E125}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2ADDBEC-04E6-4DCB-BE10-6CB8F8A6E125}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2ADDBEC-04E6-4DCB-BE10-6CB8F8A6E125}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

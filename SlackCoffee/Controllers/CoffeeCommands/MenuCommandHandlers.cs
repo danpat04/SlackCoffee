@@ -1,6 +1,6 @@
-﻿using SlackCoffee.Models;
+﻿using SlackBot;
+using SlackCoffee.Models;
 using SlackCoffee.Services;
-using SlackCoffee.Utils;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;

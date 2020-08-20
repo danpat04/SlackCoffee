@@ -4,12 +4,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
+using SlackBot;
+using SlackBot.SlackAuthentication;
 using SlackCoffee.Controllers.CoffeeCommands;
 using SlackCoffee.Models;
 using SlackCoffee.Services;
-using SlackCoffee.SlackAuthentication;
-using SlackCoffee.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace SlackCoffee.Controllers

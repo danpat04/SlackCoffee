@@ -1,0 +1,3 @@
+[submodule "SlackBot"]
+	path = SlackBot
+	url = git@github.com:danpat04/SlackBot.git
