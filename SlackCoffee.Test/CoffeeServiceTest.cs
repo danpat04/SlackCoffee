@@ -4,7 +4,6 @@ using SlackCoffee.Models;
 using SlackCoffee.Services;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace SlackCoffee.Test
@@ -18,6 +17,19 @@ namespace SlackCoffee.Test
                 optionsBuilder.UseInMemoryDatabase("TestCoffeeDatabase");
                 optionsBuilder.ConfigureWarnings(warnings => warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning));
             }
+        }
+
+        public static TestCoffeeContext CreateContext()
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<TestCoffeeContext>();
+            optionsBuilder.UseInMemoryDatabase("TestCoffeeDatabase");
+            optionsBuilder.ConfigureWarnings(warnings => warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+
+            return new TestCoffeeContext(optionsBuilder.Options);
+        }
+
+        public TestCoffeeContext(DbContextOptions options) : base(options)
+        {
         }
 
         public void SetUsers()
@@ -56,7 +68,7 @@ namespace SlackCoffee.Test
         [Fact]
         public async void CoffeeService()
         {
-            using var context = new TestCoffeeContext();
+            using var context = TestCoffeeContext.CreateContext();
             context.SetUsers();
             context.SetMenus();
             await context.SaveChangesAsync();
