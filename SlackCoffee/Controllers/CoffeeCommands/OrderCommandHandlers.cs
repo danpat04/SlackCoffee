@@ -69,9 +69,13 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             if (canceled != null && canceled.IsPicked && order.Price != canceled.Price)
                 response.Ephemeral($"추첨된 메뉴와 가격이 다릅니다. 추출러에게 바뀐 메뉴를 확실히 알려주세요.");
             response.InChannel($"{user.Name} 님이 {order.MenuId}{(canceled != null ? "로 변경" : "를 주문")} 하였습니다.");
+
             if (orderInfo.Additional)
             {
-                response.InChannel($"{user.Name} 님이 {order.MenuId}를 추가 주문 하였습니다.", "manager");
+                string notiText = (canceled?.IsPicked ?? false)
+                    ? $"{user.Name} 님이 {order.MenuId}를 추가 주문 하였습니다."
+                    : $"{user.Name} 님이 {order.MenuId}로 변경 하였습니다.";
+                response.InChannel(notiText, "manager");
             }
         }
 
