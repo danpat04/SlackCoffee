@@ -214,7 +214,7 @@ namespace SlackCoffee.Services
             return managers;
         }
 
-        public async Task<List<Order>> CompleteOrderAsync()
+        public async Task<List<Order>> CompleteOrderAsync(DateTime at)
         {
             await BeginTransactionAsync();
 
@@ -223,7 +223,12 @@ namespace SlackCoffee.Services
                 .Select(o => o.PickedAt)
                 .FirstOrDefaultAsync();
 
+
+            // 그럴리 없지만 lastPickedAt이 at 보다 미래라면 at을 대체한다  
+            at = lastPickedAt > at ? lastPickedAt : at;
+
             var orders = await _context.Orders.Where(o => o.OrderedAt <= lastPickedAt).ToListAsync();
+            var futureOrders = await _context.Orders.Where(o => o.OrderedAt > at).ToListAsync();
             var pickedOrders = orders.Where(o => o.PickedAt > DateTime.MinValue).ToList();
 
             if (pickedOrders.Count <= 0)
@@ -240,9 +245,19 @@ namespace SlackCoffee.Services
                 pickedUsers[o.UserId].Deposit -= o.Price;
             }
 
+            foreach (var o in futureOrders)
+            {
+                o.OrderedAt = at;
+            }
+
             _context.Orders.RemoveRange(orders);
             _context.CompletedOrders.AddRange(orders.Select(o => new CompletedOrder(o)));
             _context.Users.UpdateRange(pickedUsers.Values);
+
+            if (futureOrders.Count > 0)
+            {
+                _context.Orders.UpdateRange(futureOrders);
+            }
 
             return pickedOrders;
         }

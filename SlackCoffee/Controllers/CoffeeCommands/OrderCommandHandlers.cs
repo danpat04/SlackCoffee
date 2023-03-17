@@ -210,7 +210,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
         [CoffeeCommand("완성", "주문자들에게 완성을 알리고 요금을 계산합니다", true)]
         public async Task CompleteOrders(CoffeeService coffee, User user, string text, SlackResponse response)
         {
-            var orders = await coffee.CompleteOrderAsync();
+            var orders = await coffee.CompleteOrderAsync(DateTime.Now);
             var sb = new StringBuilder();
             foreach (var o in orders)
             {

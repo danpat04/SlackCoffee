@@ -4,6 +4,7 @@ using SlackCoffee.Models;
 using SlackCoffee.Services;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace SlackCoffee.Test
@@ -73,7 +74,9 @@ namespace SlackCoffee.Test
             context.SetMenus();
             await context.SaveChangesAsync();
 
-            var at = DateTime.Now;
+            // 오전으로 고정
+            var at = new DateTime(2023, 3, 17, 9, 0, 0);
+            var noon = new DateTime(2023, 3, 17, 12, 0, 0);
             var service = new CoffeeService(context);
 
             // 이전 주문이 없어서 실패
@@ -82,12 +85,13 @@ namespace SlackCoffee.Test
             await Assert.ThrowsAsync<MenuNotFoundException>(() => service.MakeOrderAsync("id1", "없는메뉴", at));
 
             var order = (await service.MakeOrderAsync("id1", "메뉴1", at)).Order;
+            var afternoonOrder = (await service.MakeOrderAsync("id1", "메뉴1", noon)).Order;
             await context.SaveChangesAsync();
 
             at = at.AddSeconds(10);
 
             // 아직 추첨을 안했기 때문에 완성 실패
-            await Assert.ThrowsAsync<BadRequestException>(service.CompleteOrderAsync);
+            await Assert.ThrowsAsync<BadRequestException>(() => service.CompleteOrderAsync(at));
 
             var pickedOrders = await service.PickOrderAsync(10, at.AddSeconds(10));
             await context.SaveChangesAsync();
@@ -115,7 +119,8 @@ namespace SlackCoffee.Test
             Assert.Single(pickedMore);
             Assert.Equal("id2", pickedMore[0].UserId);
 
-            var completedOrders = await service.CompleteOrderAsync();
+            at = at.AddSeconds(10);
+            var completedOrders = await service.CompleteOrderAsync(at);
             await context.SaveChangesAsync();
 
             Assert.Equal(2, completedOrders.Count);
@@ -123,7 +128,11 @@ namespace SlackCoffee.Test
             Assert.Equal("메뉴1", completedOrders[0].MenuId);
 
             var orders = await context.Orders.ToListAsync();
-            Assert.Empty(orders);
+            var leftOrder = orders.FirstOrDefault();
+            Assert.NotNull(leftOrder);
+            // 남은 예약은 오후 예약으로 주문 시각이 이전 완성 시각과 같다
+            Assert.Equal(at, leftOrder.OrderedAt);
+            Assert.Equal(afternoonOrder.Id, leftOrder.Id);
 
             var completeds = await context.CompletedOrders.ToListAsync();
             Assert.Equal(2, completeds.Count);
