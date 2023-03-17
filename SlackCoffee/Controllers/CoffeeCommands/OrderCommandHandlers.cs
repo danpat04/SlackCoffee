@@ -62,12 +62,17 @@ namespace SlackCoffee.Controllers.CoffeeCommands
         public async Task MakeOrder(CoffeeService coffee, User user, string text, SlackResponse response)
         {
             var canceled = await coffee.CancelOrderAsync(user.Id, DateTime.Now, DateTime.MinValue);
-            var order = await coffee.MakeOrderAsync(user.Id, text, DateTime.Now, canceled);
+            var orderInfo = await coffee.MakeOrderAsync(user.Id, text, DateTime.Now, canceled);
+            var order = orderInfo.Order;
             var deposit = await coffee.GetDepositAsync(user.Id);
             response.Ephemeral($"{order.Price}원, 현재 잔액 {deposit}원");
             if (canceled != null && canceled.IsPicked && order.Price != canceled.Price)
                 response.Ephemeral($"추첨된 메뉴와 가격이 다릅니다. 추출러에게 바뀐 메뉴를 확실히 알려주세요.");
             response.InChannel($"{user.Name} 님이 {order.MenuId}{(canceled != null ? "로 변경" : "를 주문")} 하였습니다.");
+            if (orderInfo.Additional)
+            {
+                response.InChannel($"{user.Name} 님이 {order.MenuId}를 추가 주문 하였습니다.", "manager");
+            }
         }
 
         [CoffeeCommand("오후예약", "커피를 주문합니다 (사용법: [메뉴] [옵션])", false)]
@@ -77,7 +82,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             if (DateTime.Now > at)
                 throw new BadRequestException("오전에만 사용 가능한 메뉴입니다.");
             var canceled = await coffee.CancelOrderAsync(user.Id, at, at);
-            var order = await coffee.MakeOrderAsync(user.Id, text, at);
+            var order = (await coffee.MakeOrderAsync(user.Id, text, at)).Order;
             var deposit = await coffee.GetDepositAsync(user.Id);
             response
                 .Ephemeral($"{order.Price}원, 현재 잔액 {deposit}원")

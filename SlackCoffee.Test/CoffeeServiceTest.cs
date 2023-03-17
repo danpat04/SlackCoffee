@@ -81,7 +81,7 @@ namespace SlackCoffee.Test
             // 없는 메뉴이기 때문에 실패
             await Assert.ThrowsAsync<MenuNotFoundException>(() => service.MakeOrderAsync("id1", "없는메뉴", at));
 
-            var order = await service.MakeOrderAsync("id1", "메뉴1", at);
+            var order = (await service.MakeOrderAsync("id1", "메뉴1", at)).Order;
             await context.SaveChangesAsync();
 
             at = at.AddSeconds(10);
@@ -102,7 +102,8 @@ namespace SlackCoffee.Test
             Assert.Equal("메뉴1", pickedOrders[0].MenuId);
 
             // 추가 신청
-            await service.MakeOrderAsync("id2", "메뉴2", at);
+            var info = await service.MakeOrderAsync("id2", "메뉴2", at);
+            Assert.True(info.Additional);
             await context.SaveChangesAsync();
 
             at = at.AddSeconds(10);
