@@ -334,6 +334,7 @@ namespace SlackCoffee.Services
 
             return user;
         }
+        
         public async Task<User> UpdateUserNameAsync(string userId, string name)
         {
             await BeginTransactionAsync();

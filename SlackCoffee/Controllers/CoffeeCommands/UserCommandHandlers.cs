@@ -112,5 +112,12 @@ namespace SlackCoffee.Controllers.CoffeeCommands
 
             response.Ephemeral(sb.ToString());
         }
+
+        [CoffeeCommand("이름변경", "[변경할 이름]", false)]
+        public async Task ChangeNameAsync(CoffeeService coffee, User user, string text, SlackResponse response)
+        {
+            await coffee.UpdateUserNameAsync(user.Id, text);
+            response.Ephemeral($"이름이 *{text}* 로 변경되었습니다.");
+        }
     }
 }
