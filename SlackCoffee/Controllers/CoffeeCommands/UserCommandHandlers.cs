@@ -173,6 +173,12 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             var userId = SlackBot.Utils.StringToUserId(args[0]);
             if (userId == null)
                 throw new NotWellFormedException();
+
+            if (userId == targetUserId)
+            {
+                response.Ephemeral("같은 아이디를 합칠 수는 없습니다.");
+                return;
+            }
             
             var user = await coffee.FindUserAsync(userId);
             if (user == null)
