@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using SlackBot;
 using SlackBot.SlackAuthentication;
 using SlackCoffee.Models;
@@ -23,6 +24,7 @@ namespace SlackCoffee
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddLogging(builder => builder.AddConsole());
 
             services.AddDbContext<CoffeeContext>(
                 options => options.UseSqlite(Configuration["ConnectionStrings:DefaultConnection"]),

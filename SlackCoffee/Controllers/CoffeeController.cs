@@ -69,7 +69,8 @@ namespace SlackCoffee.Controllers
             var request = new SlackRequest(HttpContext, await _slackService.GetWorkspaceAsync(workspaceName));
             var response = new SlackResponse(request);
 
-            // 기다리지 않는다.
+            _logger.LogInformation($"Request from {workspaceName}/{request.ChannelId}/{request.UserId}: {request.Text}");
+            // 기다리지 않는다
             Task.Run(() => ExecuteCommand(_dbContextOptions, request, response));
             return Ok();
         }
