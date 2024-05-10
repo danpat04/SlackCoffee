@@ -143,7 +143,8 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             {
                 sb.AppendLine($"이름: {user.Name}");
             }
-            
+
+            sb.AppendLine($"아이디: {user.Id}");
             sb.AppendLine($"잔액: {user.Deposit}");
             
             response.Ephemeral(sb.ToString());
