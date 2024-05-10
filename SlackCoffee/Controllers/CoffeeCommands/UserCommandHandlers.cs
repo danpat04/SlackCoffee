@@ -119,5 +119,86 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             await coffee.UpdateUserNameAsync(user.Id, text);
             response.Ephemeral($"이름이 *{text}* 로 변경되었습니다.");
         }
+
+        [CoffeeCommand("정보", "[대상자]", true)]
+        public async Task UserInfoAsync(CoffeeService coffee, User _, string text, SlackResponse response)
+        {
+            var userId = SlackBot.Utils.StringToUserId(text);
+            if (userId == null)
+                throw new NotWellFormedException();
+
+            var user = await coffee.FindUserAsync(userId);
+            if (user == null)
+            {
+                response.Ephemeral("존재하지 않는 유저입니다.");
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            if (user.IsManager)
+            {
+                sb.AppendLine($"이름: {user.Name} (운영자)");
+            }
+            else
+            {
+                sb.AppendLine($"이름: {user.Name}");
+            }
+            
+            sb.AppendLine($"잔액: {user.Deposit}");
+            
+            response.Ephemeral(sb.ToString());
+        }
+
+        [CoffeeCommand("병합", "[사용자] [사라질 사용자]", true)]
+        public async Task MergeUserAsync(CoffeeService coffee, User _, string text, SlackResponse response)
+        {
+            var args = text.Split(' ');
+            if (args.Length != 2)
+                throw new NotWellFormedException();
+
+            var targetUserId = SlackBot.Utils.StringToUserId(args[1]);
+            if (targetUserId == null)
+            {
+                targetUserId = args[1];
+            }
+            
+            var targetUser = await coffee.FindUserAsync(targetUserId);
+
+            if (targetUser == null)
+            {
+                response.Ephemeral("병합하여 사라질 유저가 없습니다.");
+                return;
+            }
+
+            var userId = SlackBot.Utils.StringToUserId(args[0]);
+            if (userId == null)
+                throw new NotWellFormedException();
+            
+            var user = await coffee.FindUserAsync(userId);
+            if (user == null)
+            {
+                user = await coffee.CreateUserAsync(userId, "신규유저", false);
+            }
+
+            string targetUserName = targetUser.Name;
+            await coffee.MergeUserAsync(user, targetUser);
+            response.Ephemeral($"{targetUserName}이 {user.Name}으로 합쳐졌습니다.");
+        }
+
+        [CoffeeCommand("잔액목록", "잔액 확인", true)]
+        public async Task UserListAsync(CoffeeService coffee, User _, string text, SlackResponse response)
+        {
+            var users = await coffee.GetUsersAsync();
+
+            var sb = new StringBuilder();
+            foreach (var user in users.OrderBy(u => u.Deposit))
+            {
+                sb.AppendLine($"{SlackBot.Utils.UserIdToString(user.Id)} ({user.Name}) : \t{user.Deposit}");
+            }
+
+            response.Ephemeral(sb.ToString());
+        }
+        
+        
     }
 }

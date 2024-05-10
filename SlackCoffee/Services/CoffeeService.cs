@@ -315,6 +315,11 @@ namespace SlackCoffee.Services
             return user;
         }
 
+        public async Task<List<User>> GetUsersAsync()
+        {
+            return await _context.Users.ToListAsync();
+        }
+
         public async Task<Dictionary<string, User>> GetUsersAsync(IEnumerable<string> userIds)
         {
             var ids = userIds.ToHashSet();
@@ -347,6 +352,15 @@ namespace SlackCoffee.Services
             _context.Users.Update(user);
 
             return user;
+        }
+
+        public async Task MergeUserAsync(User user, User targetUser)
+        {
+            await BeginTransactionAsync();
+
+            user.IsManager = targetUser.IsManager;
+            user.Deposit += targetUser.Deposit;
+            _context.Users.Remove(targetUser);
         }
 
         public async Task AddMenuAsync(Menu menu)
