@@ -166,7 +166,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
 
             if (targetUser == null)
             {
-                response.Ephemeral("병합하여 사라질 유저가 없습니다.");
+                response.Ephemeral($"병합하여 사라질 유저({targetUserId})가 없습니다.");
                 return;
             }
 
