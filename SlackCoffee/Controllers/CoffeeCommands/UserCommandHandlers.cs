@@ -209,7 +209,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             var sb = new StringBuilder();
             foreach (var user in users.OrderBy(u => u.Name))
             {
-                sb.AppendLine($"{user.Name} {user.Id}");
+                sb.AppendLine($"{SlackBot.Utils.UserIdToString(user.Id)} {user.Name} {user.Id}");
             }
 
             response.Ephemeral(sb.ToString());
