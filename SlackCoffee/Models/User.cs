@@ -14,5 +14,22 @@ namespace SlackCoffee.Models
         public int Deposit { get; set; }
 
         public bool IsManager { get; set; }
+
+        public void Merge(User user)
+        {
+            this.Deposit += user.Deposit;
+            this.IsManager = this.IsManager || user.IsManager;
+        }
+
+        public User Clone()
+        {
+            return new User
+            {
+                Id = this.Id,
+                Name = this.Name,
+                Deposit = this.Deposit,
+                IsManager = this.IsManager,
+            };
+        }
     }
 }

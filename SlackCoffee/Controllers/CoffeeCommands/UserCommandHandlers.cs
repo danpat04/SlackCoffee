@@ -205,7 +205,71 @@ namespace SlackCoffee.Controllers.CoffeeCommands
 
             response.Ephemeral(sb.ToString());
         }
-        
-        
+
+
+        [CoffeeCommand("사용자삭제", "기록 삭제", true)]
+        public async Task DeleteUserAsync(CoffeeService coffee, User _, string text, SlackResponse response)
+        {
+            var targetUserId = SlackBot.Utils.StringToUserId(text);
+            if (targetUserId == null)
+            {
+                targetUserId = text;
+            }
+            
+            var targetUser = await coffee.FindUserAsync(targetUserId);
+            if (targetUser == null)
+            {
+                response.Ephemeral($"유저({targetUserId})가 없습니다.");
+                return;
+            }
+
+            string userName = targetUser.Name;
+            await coffee.DeleteUserAsync(targetUser);
+            response.Ephemeral($"{userName} 사용자를 삭제하였습니다.");
+        }
+
+        [CoffeeCommand("사용자통합", "[유저] [실행:true/false] 같은 이름의 사용자를 하나로 통합한다", true)]
+        public async Task MergeUsersAsync(CoffeeService coffee, User _, string text, SlackResponse response)
+        {
+            var args = text.Split(" ");
+            string userId = SlackBot.Utils.StringToUserId(args[0]);
+            bool run = false;
+
+            if (args.Length > 1 && bool.TryParse(args[1], out bool parseResult))
+            {
+                run = parseResult;
+            }
+
+            var user = await coffee.FindUserAsync(userId);
+            if (user == null)
+            {
+                response.Ephemeral("대상 사용자를 찾을 수 없습니다");
+                return;
+            }
+
+            var (deposit, mergedUsers) = await coffee.MergeUsersAsync(user, run == false);
+
+            if (mergedUsers.Count <= 0)
+            {
+                response.Ephemeral("통합할 대상이 없습니다");
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            foreach (var u in mergedUsers)
+            {
+                sb.AppendLine($"{SlackBot.Utils.UserIdToString(u.Id)} ({u.Name}|{u.Id}): {u.Deposit}");
+            }
+
+            sb.AppendLine();
+            sb.AppendLine($"잔액: {deposit}");
+
+            if (run)
+            {
+                sb.AppendLine("통합 완료");
+            }
+
+            response.Ephemeral(sb.ToString());
+        }
     }
 }

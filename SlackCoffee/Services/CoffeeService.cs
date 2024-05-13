@@ -326,6 +326,11 @@ namespace SlackCoffee.Services
             return await _context.Users.Where(u => ids.Contains(u.Id)).ToDictionaryAsync(u => u.Id);
         }
 
+        public async Task<List<User>> GetUsersAsync(string name)
+        {
+            return await _context.Users.Where(u => u.Name == name).ToListAsync();
+        }
+
         public async Task<User> UpdateUserAsync(string userId, bool isManager)
         {
             await BeginTransactionAsync();
@@ -354,13 +359,48 @@ namespace SlackCoffee.Services
             return user;
         }
 
-        public async Task MergeUserAsync(User user, User targetUser)
+        public async Task MergeUserAsync(User user, params User[] targetUsers)
         {
             await BeginTransactionAsync();
 
-            user.IsManager = targetUser.IsManager;
-            user.Deposit += targetUser.Deposit;
-            _context.Users.Remove(targetUser);
+            foreach (var u in targetUsers)
+            {
+                user.Merge(u);
+                _context.Users.Remove(u);
+            }
+        }
+
+        public async Task<(int, List<User>)> MergeUsersAsync(User user, bool dryRun)
+        {
+            await BeginTransactionAsync();
+
+            int deposit = user.Deposit;
+            List<User> mergedUsers = await _context.Users
+                .Where(u => u.Name == user.Name && u.Id != user.Id)
+                .ToListAsync();
+            
+            foreach (var u in mergedUsers)
+            {
+                deposit += u.Deposit;
+                if (!dryRun)
+                {
+                    user.Merge(u);
+                }
+            }
+
+            if (!dryRun)
+            {
+                _context.Users.RemoveRange(mergedUsers);
+            }
+
+            return (deposit, mergedUsers);
+        }
+
+        public async Task DeleteUserAsync(User user)
+        {
+            await BeginTransactionAsync();
+
+            _context.Users.Remove(user);
         }
 
         public async Task AddMenuAsync(Menu menu)
