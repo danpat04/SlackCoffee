@@ -156,29 +156,18 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             var args = text.Split(' ');
             if (args.Length != 2)
                 throw new NotWellFormedException();
-
-            var targetUserId = SlackBot.Utils.StringToUserId(args[1]);
-            if (targetUserId == null)
-            {
-                targetUserId = args[1];
-            }
             
-            var targetUser = await coffee.FindUserAsync(targetUserId);
-
+            var targetUser = await coffee.FindUserAsync(args[1]);
             if (targetUser == null)
             {
-                response.Ephemeral($"병합하여 사라질 유저({targetUserId})가 없습니다.");
+                response.Ephemeral($"병합하여 사라질 유저({args[1]})가 없습니다.");
                 return;
             }
 
-            var userId = SlackBot.Utils.StringToUserId(args[0]);
-            if (userId == null)
-                throw new NotWellFormedException();
-
-            if (userId == targetUserId)
+            string userId = SlackBot.Utils.StringToUserId(args[0]);
+            if (string.IsNullOrEmpty(userId))
             {
-                response.Ephemeral("같은 아이디를 합칠 수는 없습니다.");
-                return;
+                throw new NotWellFormedException();
             }
             
             var user = await coffee.FindUserAsync(userId);
@@ -187,13 +176,19 @@ namespace SlackCoffee.Controllers.CoffeeCommands
                 user = await coffee.CreateUserAsync(userId, "신규유저", false);
             }
 
+            if (user.Id == targetUser.Id)
+            {
+                response.Ephemeral("같은 아이디를 합칠 수는 없습니다.");
+                return;
+            }
+
             string targetUserName = targetUser.Name;
             await coffee.MergeUserAsync(user, targetUser);
             response.Ephemeral($"{targetUserName}이 {user.Name}으로 합쳐졌습니다.");
         }
 
         [CoffeeCommand("잔액목록", "잔액 확인", true)]
-        public async Task UserListAsync(CoffeeService coffee, User _, string text, SlackResponse response)
+        public async Task DepositListAsync(CoffeeService coffee, User _, string text, SlackResponse response)
         {
             var users = await coffee.GetUsersAsync();
 
@@ -206,20 +201,27 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             response.Ephemeral(sb.ToString());
         }
 
+        [CoffeeCommand("사용자목록", "사용자들의 목록", true)]
+        public async Task UserListAsync(CoffeeService coffee, User _, string text, SlackResponse response)
+        {
+            var users = await coffee.GetUsersAsync();
+
+            var sb = new StringBuilder();
+            foreach (var user in users.OrderBy(u => u.Name))
+            {
+                sb.AppendLine($"{user.Name} {user.Id}");
+            }
+
+            response.Ephemeral(sb.ToString());
+        }
 
         [CoffeeCommand("사용자삭제", "기록 삭제", true)]
         public async Task DeleteUserAsync(CoffeeService coffee, User _, string text, SlackResponse response)
         {
-            var targetUserId = SlackBot.Utils.StringToUserId(text);
-            if (targetUserId == null)
-            {
-                targetUserId = text;
-            }
-            
-            var targetUser = await coffee.FindUserAsync(targetUserId);
+            var targetUser = await coffee.FindUserAsync(text);
             if (targetUser == null)
             {
-                response.Ephemeral($"유저({targetUserId})가 없습니다.");
+                response.Ephemeral($"유저({text})가 없습니다.");
                 return;
             }
 
@@ -232,19 +234,18 @@ namespace SlackCoffee.Controllers.CoffeeCommands
         public async Task MergeUsersAsync(CoffeeService coffee, User _, string text, SlackResponse response)
         {
             var args = text.Split(" ");
-            string userId = SlackBot.Utils.StringToUserId(args[0]);
-            bool run = false;
 
-            if (args.Length > 1 && bool.TryParse(args[1], out bool parseResult))
-            {
-                run = parseResult;
-            }
-
-            var user = await coffee.FindUserAsync(userId);
+            var user = await coffee.FindUserAsync(args[0]);
             if (user == null)
             {
                 response.Ephemeral("대상 사용자를 찾을 수 없습니다");
                 return;
+            }
+            
+            bool run = false;
+            if (args.Length > 1 && bool.TryParse(args[1], out bool parseResult))
+            {
+                run = parseResult;
             }
 
             var (deposit, mergedUsers) = await coffee.MergeUsersAsync(user, run == false);

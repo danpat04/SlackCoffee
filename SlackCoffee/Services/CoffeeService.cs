@@ -298,6 +298,17 @@ namespace SlackCoffee.Services
 
         public async Task<User> FindUserAsync(string userId)
         {
+            if (string.IsNullOrEmpty(userId))
+            {
+                return null;
+            }
+
+            string temp = SlackBot.Utils.StringToUserId(userId);
+            if (string.IsNullOrEmpty(temp) == false)
+            {
+                userId = temp;
+            }
+            
             return await _context.Users.FindAsync(userId);
         }
 
