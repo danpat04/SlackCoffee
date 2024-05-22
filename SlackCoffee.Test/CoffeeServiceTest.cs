@@ -54,11 +54,11 @@ namespace SlackCoffee.Test
         {
             var menus = new List<Menu>
             {
-                new Menu {Id = "¸Þ´º1", Description = "", Enabled = true, Order = 0, Price = 1000},
-                new Menu {Id = "¸Þ´º2", Description = "", Enabled = true, Order = 1, Price = 1500},
-                new Menu {Id = "¸Þ´º3", Description = "", Enabled = true, Order = 2, Price = 2000},
-                new Menu {Id = "¸Þ´º4", Description = "", Enabled = true, Order = 3, Price = 3000},
-                new Menu {Id = "¸Þ´º5", Description = "", Enabled = false, Order = 4, Price = 1000},
+                new Menu {Id = "ï¿½Þ´ï¿½1", Description = "", Enabled = true, Order = 0, Price = 1000},
+                new Menu {Id = "ï¿½Þ´ï¿½2", Description = "", Enabled = true, Order = 1, Price = 1500},
+                new Menu {Id = "ï¿½Þ´ï¿½3", Description = "", Enabled = true, Order = 2, Price = 2000},
+                new Menu {Id = "ï¿½Þ´ï¿½4", Description = "", Enabled = true, Order = 3, Price = 3000},
+                new Menu {Id = "ï¿½Þ´ï¿½5", Description = "", Enabled = false, Order = 4, Price = 1000},
             };
             Menus.AddRange(menus);
         }
@@ -74,45 +74,45 @@ namespace SlackCoffee.Test
             context.SetMenus();
             await context.SaveChangesAsync();
 
-            // ¿ÀÀüÀ¸·Î °íÁ¤
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             var at = new DateTime(2023, 3, 17, 9, 0, 0);
             var noon = new DateTime(2023, 3, 17, 12, 0, 0);
             var service = new CoffeeService(context);
 
-            // ÀÌÀü ÁÖ¹®ÀÌ ¾ø¾î¼­ ½ÇÆÐ
+            // ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½î¼­ ï¿½ï¿½ï¿½ï¿½
             await Assert.ThrowsAsync<BadRequestException>(() => service.MakeOrderAsync("id1", "", at));
-            // ¾ø´Â ¸Þ´ºÀÌ±â ¶§¹®¿¡ ½ÇÆÐ
-            await Assert.ThrowsAsync<MenuNotFoundException>(() => service.MakeOrderAsync("id1", "¾ø´Â¸Þ´º", at));
+            // ï¿½ï¿½ï¿½ï¿½ ï¿½Þ´ï¿½ï¿½Ì±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+            await Assert.ThrowsAsync<MenuNotFoundException>(() => service.MakeOrderAsync("id1", "ï¿½ï¿½ï¿½Â¸Þ´ï¿½", at));
 
-            var order = (await service.MakeOrderAsync("id1", "¸Þ´º1", at)).Order;
-            var afternoonOrder = (await service.MakeOrderAsync("id1", "¸Þ´º1", noon)).Order;
+            var order = (await service.MakeOrderAsync("id1", "ï¿½Þ´ï¿½1", at)).Order;
+            var afternoonOrder = (await service.MakeOrderAsync("id1", "ï¿½Þ´ï¿½1", noon)).Order;
             await context.SaveChangesAsync();
 
             at = at.AddSeconds(10);
 
-            // ¾ÆÁ÷ ÃßÃ·À» ¾ÈÇß±â ¶§¹®¿¡ ¿Ï¼º ½ÇÆÐ
-            await Assert.ThrowsAsync<BadRequestException>(() => service.CompleteOrderAsync(at));
+            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã·ï¿½ï¿½ ï¿½ï¿½ï¿½ß±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¼ï¿½ ï¿½ï¿½ï¿½ï¿½
+            await Assert.ThrowsAsync<BadRequestException>(() => service.CompleteOrderAsync(at, false));
 
             var pickedOrders = await service.PickOrderAsync(10, at.AddSeconds(10));
             await context.SaveChangesAsync();
 
             at = at.AddSeconds(10);
 
-            // ÀÌ¹Ì ÃßÃ·À» Çß±â ¶§¹®¿¡ ÃßÃ· ºÒ°¡
+            // ï¿½Ì¹ï¿½ ï¿½ï¿½Ã·ï¿½ï¿½ ï¿½ß±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã· ï¿½Ò°ï¿½
             await Assert.ThrowsAsync<BadRequestException>(() => service.PickOrderAsync(10, at));
 
             Assert.Single(pickedOrders);
             Assert.Equal("id1", pickedOrders[0].UserId);
-            Assert.Equal("¸Þ´º1", pickedOrders[0].MenuId);
+            Assert.Equal("ï¿½Þ´ï¿½1", pickedOrders[0].MenuId);
 
-            // Ãß°¡ ½ÅÃ»
-            var info = await service.MakeOrderAsync("id2", "¸Þ´º2", at);
+            // ï¿½ß°ï¿½ ï¿½ï¿½Ã»
+            var info = await service.MakeOrderAsync("id2", "ï¿½Þ´ï¿½2", at);
             Assert.True(info.Additional);
             await context.SaveChangesAsync();
 
             at = at.AddSeconds(10);
 
-            // Ãß°¡ ÃßÃ·
+            // ï¿½ß°ï¿½ ï¿½ï¿½Ã·
             var pickedMore = await service.PickMoreOrderAsync(2, at);
             await context.SaveChangesAsync();
 
@@ -120,17 +120,17 @@ namespace SlackCoffee.Test
             Assert.Equal("id2", pickedMore[0].UserId);
 
             at = at.AddSeconds(10);
-            var completedOrders = await service.CompleteOrderAsync(at);
+            var completedOrders = await service.CompleteOrderAsync(at, false);
             await context.SaveChangesAsync();
 
             Assert.Equal(2, completedOrders.Count);
             Assert.Equal("id1", completedOrders[0].UserId);
-            Assert.Equal("¸Þ´º1", completedOrders[0].MenuId);
+            Assert.Equal("ï¿½Þ´ï¿½1", completedOrders[0].MenuId);
 
             var orders = await context.Orders.ToListAsync();
             var leftOrder = orders.FirstOrDefault();
             Assert.NotNull(leftOrder);
-            // ³²Àº ¿¹¾àÀº ¿ÀÈÄ ¿¹¾àÀ¸·Î ÁÖ¹® ½Ã°¢ÀÌ ÀÌÀü ¿Ï¼º ½Ã°¢°ú °°´Ù
+            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¼ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             Assert.Equal(at, leftOrder.OrderedAt);
             Assert.Equal(afternoonOrder.Id, leftOrder.Id);
 

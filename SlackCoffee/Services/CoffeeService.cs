@@ -214,7 +214,7 @@ namespace SlackCoffee.Services
             return managers;
         }
 
-        public async Task<List<Order>> CompleteOrderAsync(DateTime at)
+        public async Task<List<Order>> CompleteOrderAsync(DateTime at, bool free)
         {
             await BeginTransactionAsync();
 
@@ -240,9 +240,12 @@ namespace SlackCoffee.Services
                 .Where(u => pickedUserIds.Contains(u.Id))
                 .ToDictionaryAsync(u => u.Id);
 
-            foreach (var o in pickedOrders)
+            if (free == false)
             {
-                pickedUsers[o.UserId].Deposit -= o.Price;
+                foreach (var o in pickedOrders)
+                {
+                    pickedUsers[o.UserId].Deposit -= o.Price;
+                }
             }
 
             foreach (var o in futureOrders)

@@ -20,7 +20,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             response.Ephemeral($"현재 잔액은 {u.Deposit}원 입니다.");
         }
 
-        // [CoffeeCommand("대리적립", "", true)]
+        [CoffeeCommand("대리적립", "커피 요금을 대리로 적립합니다 (사용법: [대상자] [금액]", true)]
         public async Task FillOtherWallet(CoffeeService coffee, User requestUser, string text, SlackResponse response)
         {
             var splitted = text.Split(' ');

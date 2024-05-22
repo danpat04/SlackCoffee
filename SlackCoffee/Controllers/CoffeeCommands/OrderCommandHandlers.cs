@@ -210,14 +210,28 @@ namespace SlackCoffee.Controllers.CoffeeCommands
         [CoffeeCommand("완성", "주문자들에게 완성을 알리고 요금을 계산합니다", true)]
         public async Task CompleteOrders(CoffeeService coffee, User user, string text, SlackResponse response)
         {
-            var orders = await coffee.CompleteOrderAsync(DateTime.Now);
+            var orders = await coffee.CompleteOrderAsync(DateTime.Now, false);
             var sb = new StringBuilder();
             foreach (var o in orders)
             {
                 sb.Append(SlackBot.Utils.UserIdToString(o.UserId)).Append(' ');
             }
             sb.Append("님 커피 가져가세요~");
-            // TODO: 왓카페 채널에 완성 명단을 알리기
+            response
+                .Ephemeral("공지하였습니다.")
+                .InChannel(sb.ToString(), "user");
+        }
+
+        [CoffeeCommand("무료완성", "주문자들에게 완성을 알리고 무료로 제공합니다", true)]
+        public async Task CompleteFreeOrders(CoffeeService coffee, User user, string text, SlackResponse response)
+        {
+            var orders = await coffee.CompleteOrderAsync(DateTime.Now, true);
+            var sb = new StringBuilder();
+            foreach (var o in orders)
+            {
+                sb.Append(SlackBot.Utils.UserIdToString(o.UserId)).Append(' ');
+            }
+            sb.Append("님 커피 가져가세요~");
             response
                 .Ephemeral("공지하였습니다.")
                 .InChannel(sb.ToString(), "user");
