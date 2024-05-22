@@ -96,7 +96,7 @@ namespace SlackCoffee.Controllers
             var command = splitted[0];
             var option = splitted.Length > 1 ? splitted[1] : "";
 
-            using var coffee = new CoffeeService(context);
+            using var coffee = new CoffeeService(context, this._logger);
 
             var user = await coffee.FindUserAsync(request.UserId);
             if (user == null)

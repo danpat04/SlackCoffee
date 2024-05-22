@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 
 namespace SlackCoffee.Services
 {
@@ -13,12 +14,19 @@ namespace SlackCoffee.Services
         private static readonly TimeSpan OrderTolerance = new TimeSpan(6, 0, 0);
 
         private readonly CoffeeContext _context;
+        private readonly ILogger _logger = null;
 
         private IDbContextTransaction _transaction;
 
         public CoffeeService(CoffeeContext context)
         {
             _context = context;
+        }
+        
+        public CoffeeService(CoffeeContext context, ILogger logger)
+        {
+            _context = context;
+            _logger = logger;
         }
 
         public void Dispose()
@@ -106,6 +114,7 @@ namespace SlackCoffee.Services
                 order.PickedAt = prevOrder.PickedAt;
 
             _context.Orders.Add(order);
+            this._logger?.LogInformation($"주문 {order.GetName()} {order.ShotCount} {order.Price}");
             return (order, additionalOrder);
         }
 
