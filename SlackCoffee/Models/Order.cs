@@ -44,15 +44,27 @@ namespace SlackCoffee.Models
             MenuId = menuId;
             Options = options;
             OrderedAt = at;
+            ShotCount = 1;
             Price = 0;
 
-            // ShotCount = 1 + (uint)options.Split('+').Select(s => s.Contains("샷") ? 1 : 0).Sum();
-            ShotCount = 1;  // 일단 더블샷을 허용하지 않는다
+            var optionArgs = options.Split(' ');
+            foreach (var arg in optionArgs)
+            {
+                if (arg.Contains("투샷") || arg.Contains("샷추가"))
+                {
+                    ShotCount = 2;
+                }
+            }
 
             PickedAt = DateTime.MinValue;
         }
 
         public bool IsPicked => PickedAt > DateTime.MinValue;
+
+        public string GetName()
+        {
+            return this.ShotCount > 1 ? $"{this.MenuId}(샷추가)" : this.MenuId;
+        }
     }
 
     public class Order : OrderBase

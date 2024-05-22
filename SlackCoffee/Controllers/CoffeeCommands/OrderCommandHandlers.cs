@@ -17,8 +17,11 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             foreach (var order in orders)
             {
                 if (order.IsPicked)
+                {
                     sb.Append(":_v: ");
-                 sb.AppendLine($"{users[order.UserId].Name}: {order.MenuId} {order.Options}");
+                }
+                
+                sb.AppendLine($"{users[order.UserId].Name}: {order.GetName()} {order.Options}");
             }
         }
 
@@ -68,13 +71,13 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             response.Ephemeral($"{order.Price}원, 현재 잔액 {deposit}원");
             if (canceled != null && canceled.IsPicked && order.Price != canceled.Price)
                 response.Ephemeral($"추첨된 메뉴와 가격이 다릅니다. 추출러에게 바뀐 메뉴를 확실히 알려주세요.");
-            response.InChannel($"{user.Name} 님이 {order.MenuId}{(canceled != null ? "로 변경" : "를 주문")} 하였습니다.");
+            response.InChannel($"{user.Name} 님이 {order.GetName()}{(canceled != null ? "로 변경" : "를 주문")} 하였습니다.");
 
             if (orderInfo.Additional)
             {
                 string notiText = (canceled?.IsPicked ?? false)
-                    ? $"{user.Name} 님이 {order.MenuId}를 추가 주문 하였습니다."
-                    : $"{user.Name} 님이 {order.MenuId}로 변경 하였습니다.";
+                    ? $"{user.Name} 님이 {order.GetName()}를 추가 주문 하였습니다."
+                    : $"{user.Name} 님이 {order.GetName()}로 변경 하였습니다.";
                 response.InChannel(notiText, "manager");
             }
         }
@@ -90,7 +93,7 @@ namespace SlackCoffee.Controllers.CoffeeCommands
             var deposit = await coffee.GetDepositAsync(user.Id);
             response
                 .Ephemeral($"{order.Price}원, 현재 잔액 {deposit}원")
-                .InChannel($"{user.Name} 님이 오후 커피를 {order.MenuId}로 {(canceled != null ? "변경" : "예약")} 하였습니다.");
+                .InChannel($"{user.Name} 님이 오후 커피를 {order.GetName()}로 {(canceled != null ? "변경" : "예약")} 하였습니다.");
         }
 
         [CoffeeCommand("주문취소", "주문한 커피를 취소합니다", false)]
