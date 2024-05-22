@@ -71,7 +71,7 @@ namespace SlackCoffee.Models
         {
             var menu = menus.FirstOrDefault(m => m.Id == this.MenuId);
             var price = menu?.Price ?? 0;
-            this.Price = price + (Math.Min(this.ShotCount - 1, 0) * 500);
+            this.Price = price + (Math.Max(this.ShotCount - 1, 0) * 500);
         }
     }
 

@@ -5,6 +5,7 @@ using SlackCoffee.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace SlackCoffee.Test
@@ -77,7 +78,7 @@ namespace SlackCoffee.Test
             // �������� ����
             var at = new DateTime(2023, 3, 17, 9, 0, 0);
             var noon = new DateTime(2023, 3, 17, 12, 0, 0);
-            var service = new CoffeeService(context);
+            var service = new CoffeeService(context, NullLogger.Instance);
 
             // ���� �ֹ��� ��� ����
             await Assert.ThrowsAsync<BadRequestException>(() => service.MakeOrderAsync("id1", "", at));

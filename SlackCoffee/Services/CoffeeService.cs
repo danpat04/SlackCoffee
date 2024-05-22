@@ -17,11 +17,6 @@ namespace SlackCoffee.Services
         private readonly ILogger _logger = null;
 
         private IDbContextTransaction _transaction;
-
-        public CoffeeService(CoffeeContext context)
-        {
-            _context = context;
-        }
         
         public CoffeeService(CoffeeContext context, ILogger logger)
         {
@@ -114,7 +109,6 @@ namespace SlackCoffee.Services
                 order.PickedAt = prevOrder.PickedAt;
 
             _context.Orders.Add(order);
-            this._logger?.LogInformation($"주문 {order.GetName()} {order.ShotCount} {order.Price}");
             return (order, additionalOrder);
         }
 
