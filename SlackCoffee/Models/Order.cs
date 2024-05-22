@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -64,6 +65,13 @@ namespace SlackCoffee.Models
         public string GetName()
         {
             return this.ShotCount > 1 ? $"{this.MenuId}(샷추가)" : this.MenuId;
+        }
+
+        public void SetPrice(IEnumerable<Menu> menus)
+        {
+            var menu = menus.FirstOrDefault(m => m.Id == this.MenuId);
+            var price = menu?.Price ?? 0;
+            this.Price = price + (Math.Min(this.ShotCount - 1, 0) * 500);
         }
     }
 

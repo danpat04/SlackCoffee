@@ -48,13 +48,6 @@ namespace SlackCoffee.Services
                 _transaction = await _context.Database.BeginTransactionAsync();
         }
 
-        private async Task SetPriceAsync(Order order)
-        {
-            var menu = await _context.Menus.FindAsync(order.MenuId);
-            var price = menu?.Price ?? 0;
-            order.Price = price + (Math.Min(order.ShotCount - 1, 0) * 500);
-        }
-
         public async Task<(Order Order, bool Additional)> MakeOrderAsync(string userId, string text, DateTime at, Order prevOrder = null)
         {
             await BeginTransactionAsync();
@@ -82,7 +75,7 @@ namespace SlackCoffee.Services
                     throw new MenuDisabledException();
 
                 order = Order.Reorder(lastOrder, at);
-                await SetPriceAsync(order);
+                order.SetPrice(await this.GetMenusAsync());
             }
             else
             {
@@ -106,7 +99,7 @@ namespace SlackCoffee.Services
                     throw new MenuDisabledException();
 
                 order = new Order(userId, menu.Id, options, at);
-                await SetPriceAsync(order);
+                order.SetPrice(await this.GetMenusAsync());
             }
 
             if (prevOrder != null)
